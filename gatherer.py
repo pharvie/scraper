@@ -1,41 +1,18 @@
 import os.path
 import os
-import requester
-from urllib.parse import urlparse
 from random import randint
 import hashlib
-import re
 import regex
+import requester
 import heapq
 
 regex = regex.get()
 expanded = {}
 
-def assign(url):
+def add_to_path(path, polarity, url):
     h = hashlib.md5()
     h.update(url.encode('utf-8'))
     name = h.hexdigest()
-    ud, utop = requester.remove_top(requester.remove_identifier(urlparse(url).netloc))
-    if ud in expanded:
-        if expanded[ud]:
-            add_to_path('pos', name, url)
-        else:
-            add_to_path('neg', name, url)
-    else:
-        r = requester.request(url)
-        if r:
-            rd, rtop = requester.remove_top(requester.remove_identifier(urlparse(r.url).netloc))
-            if ud != rd and not re.search(regex['ignore'], ud):
-                print('Pre:', ud)
-                print('Post:', rd)
-                add_to_path('pos', name, url)
-                expanded[ud] = True
-            else:
-                add_to_path('neg', name, url)
-                expanded[ud] = False
-
-def add_to_path(polarity, name, url):
-    path = 'C:\\Users\\pharvie\\Desktop\\BitLearner'
     rand = randint(1, 4)
     if rand == 1:
         print('Adding', url, 'to test', polarity, ':', name)
@@ -51,52 +28,37 @@ def add_to_path(polarity, name, url):
         print('Unicode error at', str(url))
     f.close()
 
-
-def print_directory(directory):
-    hosts = {}
-    print(directory)
-    for filename in os.listdir(directory):
-        try:
-            f = open(os.path.join(directory, filename), 'r')
-        except TypeError:
-            pass
-        else:
-            url = f.read()
-            if not requester.validate(url):
-                f.close()
-                print('No url at', filename)
-                os.unlink(os.path.join(directory, filename))
-            else:
-                host = requester.host(url)
-                if host not in hosts:
-                    hosts[host] = 0
-                hosts[host] += 1
-
-    for filename in os.listdir(directory):
-        try:
-            f = open(os.path.join(directory, filename), 'r')
-        except TypeError:
-            pass
-        else:
-            url = f.read()
-            if not requester.validate(url):
-                f.close()
-                print('No url at', filename)
-                os.unlink(os.path.join(directory, filename))
-            else:
-                host = requester.host(url)
-                if hosts[host] > 100:
-                    f.close()
-                    os.unlink(os.path.join(directory, filename))
-                    hosts[host] -= 1
+def vocab(root, limit):
+    urls = []
+    state = ['train', 'test']
+    polarity = ['pos', 'neg']
+    vocabulary = {}
     heap = []
-    for host in hosts:
-        heapq.heappush(heap, (-hosts[host], host))
+    counter = 0
+    for s in state:
+        for p in polarity:
+            path = os.path.join(root, s, p)
+            urls += iterator(path)
+    for url in urls:
+        for phrase in requester.phrases(url):
+            if phrase not in vocabulary:
+                vocabulary[phrase] = 0
+            vocabulary[phrase] += 1
+    for phrase in vocabulary:
+        heapq.heappush(heap, (-vocabulary[phrase], phrase))
 
-    while heap:
+    while heap and counter < limit:
         entry = heapq.heappop(heap)
-        print(entry[1], ':', -entry[0])
+        vocab = entry[1]
+
+    return vocab
 
 
-#print_directory('C:\\Users\\pharvie\\Desktop\\BitLearner\\train\\neg')
-#print_directory('C:\\Users\\pharvie\\Desktop\\BitLearner\\test\\neg')
+def iterator(root):
+    urls = []
+    for file_name in os.listdir(root):
+        path = os.path.join(root, file_name)
+        with open(path, 'r') as f:
+            url = f.read()
+            urls.append(url)
+    return urls

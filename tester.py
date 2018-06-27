@@ -278,9 +278,9 @@ def test_remove_top():
     domain3, top3 = requester.remove_top('http://bit.ly/AWEr')
     domain4, top4 = requester.remove_top('https://goo.gl/x6khNK')
 
-    assert domain1 == 'www.reddit'
+    assert domain1 == 'reddit'
     assert top1 == top2 == 'com'
-    assert domain2 == 'www.ak-ahmaid.1up.next'
+    assert domain2 == 'ak-ahmaid.1up.next'
     assert domain3 == 'bit'
     assert top3 == 'ly'
     assert domain4 == 'goo'
@@ -380,6 +380,29 @@ def error_check_params():
             requester.params(url)
 
 
+def test_phrases():
+    phrases1 = requester.phrases('http://www.reddit.com/r/all')
+    phrases2 = requester.phrases('http://www.freshiptv.com/free-30-iptv-list-premium-worldsport-hd-sd-channels-m3u')
+    phrases3 = requester.phrases('https://www.list-iptv.com/p/telecharger-iptv-france.html')
+    phrases4 = requester.phrases('http://www.reddit.com')
+
+    assert phrases1 == ['r', 'all']
+    assert phrases2 == ['free', 'iptv', 'list', 'premium', 'worldsport', 'hd', 'sd', 'channels', 'm3u']
+    assert phrases3 == ['p', 'telecharger', 'iptv', 'france', 'html']
+    assert phrases4 == []
+
+
+def error_check_phrases():
+    url1 = None
+    url2 = 23
+    url3 = []
+    url4 = 'www.reddit.com'
+    urls = [url1, url2, url3, url4]
+    for url in urls:
+        with pytest.raises(InvalidURLException):
+            requester.phrases(url)
+
+
 #my_fixer method method
 #checks the return of the partial method
 def test_partial():
@@ -474,21 +497,14 @@ def error_check_expand():
 #my fixer_method
 #checks the return of the reduce method
 def test_reduce():
-    host = requester.host('https://www.list-iptv.com/search/label/Download%20iptv%20uk')
-    url1 = fixer.reduce('https://www.list-iptv.com/search/label/Download%20iptv%20uk', host)
-    url2 = fixer.reduce('https://www.list-iptv.com/search/label/Download%20iptv%20uk?&max-results=10', host)
-    url3 = fixer.reduce('http://192.168.68.1/playlist/channels/username=fat&password=cat', host)
-    url4 = fixer.reduce('https://www.list-iptv.com/search/label/Download%20iptv%20uk?&max-results=10', host)
+    url1 = fixer.reduce('http://reddit.com/')
+    url2 = fixer.reduce('http://reddit.com')
 
-    assert url1 == 'https://www.list-iptv.com/search/label/Download%20iptv%20uk'
-    assert url2 == url4 == url1
-    assert url3 == 'http://192.168.68.1/playlist/channels/username=fat&password=cat'
-
+    assert url1 == url2
 
 #my_fixer method
 #error checks the reduce method
 def error_check_reduce():
-    host = 'http://reddit.com'
     url1 = None
     url2 = 23
     url3 = '//www.reddit.com'
@@ -496,7 +512,7 @@ def error_check_reduce():
     urls = [url1, url2, url3, url4]
     for url in urls:
         with pytest.raises(InvalidURLException):
-            fixer.reduce(url, host)
+            fixer.reduce(url)
 
 
 #Node method
@@ -864,7 +880,7 @@ def requester_tests():
             test_request, error_check_request, test_get_format, error_check_get_format, test_hash_content,
             error_check_hash_content, test_deport, error_check_deport, test_prepare, error_check_prepare,
             test_remove_top, error_check_remove_top, test_subpaths, error_check_subpaths, test_purity,
-            error_check_purity]
+            error_check_purity, test_phrases, error_check_phrases]
 
 
 def fixer_tests():

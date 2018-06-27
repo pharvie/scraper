@@ -14,6 +14,7 @@ import re
 import sys
 from urllib.parse import urlparse
 import gatherer
+import os.path
 
 encodings = ['utf-8', 'latin-1', 'windows-1250', 'ascii']
 regex = regex.get()
@@ -22,7 +23,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Crawler(object):
-    def __init__(self, test=None, limit=float('inf'), train=False):
+    def __init__(self, test=None, limit=float('inf'), gather=False):
         self.nodes = {}
         self.visited = set()
         self.hashes = set()
@@ -34,7 +35,8 @@ class Crawler(object):
         self.important = {}
         self.limit = limit
         self.queue = Queue()
-        self.train = train
+        self.path = None
+        self.gather = gather
         if test:
             self.host = requester.host(test)
             self.nodes[test] = Node(test, None)
@@ -47,9 +49,12 @@ class Crawler(object):
             self.visit(self.host, None, self.host)
             if page != self.host:
                 self.visit(page, self.nodes[self.host], self.host)
+            if self.gather:
+                domain, top = requester.remove_top(self.host)
+                self.path = os.path.join('C:\\Users\\pharvie\\Desktop\\Training', domain)
         request = requester.request(page)
         self.crawled.add(page)
-        #print('Crawling',  page)
+        print('Crawling',  page)
         if request is not None:
             self.counter += 1
             try:
@@ -71,7 +76,7 @@ class Crawler(object):
             for a in soup.find_all('a', href=True):
                 url = a.get('href')
                 if not re.search(regex['invalid'], url) and url != '':
-                    url = self.visit(url, self.nodes[parent], self.host, crawled=True)
+                    url = self.visit(url, self.nodes[parent], self.host)
                     if url is not None:
                         self.check(url)
                         if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
@@ -116,10 +121,9 @@ class Crawler(object):
                             self.streams[prepared_host] = set()
                         self.streams[prepared_host].add(self.host)
                         counter += 1
-                        #print(prepared_host, self.streams[prepared_host], 'from', parent)
+                        print(prepared_host, self.streams[prepared_host], 'from', parent)
                         if counter == 1:
-                            pass
-                            #self.parents(self.nodes[url])
+                            self.parents(self.nodes[url])
             elif requester.validate(url):
                 prepared_host = requester.prepare(requester.host(url))
                 url = self.visit(url, self.nodes[parent], self.host)
@@ -174,12 +178,11 @@ class Crawler(object):
                             except UnicodeDecodeError:
                                 pass
                             else:
-                                print('Encoded in', e)
                                 if splitext:
                                     self.parse_text(splitext, parent=request.url)
                                     break
 
-    def visit(self, url, parent, host, crawled=False):
+    def visit(self, url, parent, host):
         if url is None or not isinstance(url, str):
             raise InvalidInputException('Cannot visit invalid url ' + str(url))
         if url in self.nodes:
@@ -187,9 +190,7 @@ class Crawler(object):
         fixed_url = fixer.phish(fixer.partial(url, host))
         if not requester.validate(fixed_url):
             return None
-        if self.train and crawled and not requester.internal(fixed_url, host):
-            gatherer.assign(fixed_url)
-        fixed_url = fixer.reduce(fixer.expand(fixed_url), self.host)
+        fixed_url = fixer.reduce(fixer.expand(fixed_url))
         if url != fixed_url:
             if fixed_url in self.nodes:
                 return None
@@ -202,24 +203,22 @@ class Crawler(object):
 
     def eliminate(self):
         print('In eliminate')
-        counter = 0
         for node in self.important:
             if self.important[node]:
                 while node.parent() is not None and not self.important[node.parent()]:
                     self.important[node.parent()] = True
                     node = node.parent()
         for node in self.important:
-            if not self.important[node] and (node.data() in self.crawled or node.data() in self.requested):
+            if not self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
                 print('The following url is to be eliminated', node.data())
-                counter += 1
-        print('The number of requests can be reduced by', str(counter))
-        for node in self.important:
-            if not self.important[node] and node.data() not in self.crawled and node.data() not in self.requested:
-                print('The following url is to be eliminated', node.data(), '\n', 'Perhaps if it had been crawled it could have been spared')
+                if self.gather:
+                    gatherer.add_to_path(self.path, 'neg', node.data())
 
         for node in self.important:
-            if self.important[node]:
+            if self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
                 print('The following url is to be spared', node.data())
+                if self.gather:
+                    gatherer.add_to_path(self.path, 'pos', node.data())
 
     def parents(self, node):
         parents = []

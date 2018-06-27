@@ -1,5 +1,5 @@
-from exceptions import InvalidURLException, InvalidRequestException, InvalidInputException
 import validators
+from exceptions import InvalidURLException, InvalidRequestException, InvalidInputException
 from urllib.parse import urlparse
 import requests
 from requests.models import Response
@@ -22,6 +22,14 @@ def play_stream(url):
     player.set_media(media)
     player.play()
 """
+
+def phrases(url):
+    if not validate(url):
+        raise InvalidURLException('Cannot find words of invalid url')
+    path = urlparse(url).path
+    phrases = re.findall(regex['phrases'], path)
+    phrases = list(filter(lambda x: not re.match(r'^\d+$', x), phrases))
+    return phrases
 
 def params(url):
     if not validate(url):
@@ -80,7 +88,7 @@ def remove_top(url):
     if re.search(regex['ip'], netloc):
         return netloc, 'ip'
     s = re.search(regex['top'], netloc)
-    domain = s.group(1)
+    domain = remove_identifier(s.group(1))
     top = s.group(2)
     return domain, top
 

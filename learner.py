@@ -1,18 +1,16 @@
 import tensorflow as tf
-import numpy as np
 import os
 import pandas as pd
 import requester
-from tabulate import tabulate
 import re
 import codecs
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 domains = []
 tops = ['default']
-
 
 def load_directory_data(directory):
     print(directory)
@@ -35,7 +33,43 @@ def load_directory_data(directory):
     print(tops)
     return df
 
-def features():
+
+# Merge positive and negative examples, add a polarity column and shuffle.
+def load_dataset(directory):
+    pos_df = load_directory_data(os.path.join(directory, "pos"))
+    neg_df = load_directory_data(os.path.join(directory, "neg"))
+    pos_df["polarity"] = 1
+    neg_df["polarity"] = 0
+    return pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True)
+
+
+# Download and process the dataset files.
+def download_and_load_datasets(dataset):
+    train_df = load_dataset(os.path.join(dataset, "train"))
+    test_df = load_dataset(os.path.join(dataset, "test"))
+    return train_df, test_df
+
+
+if __name__ == '__main__':
+    directory = 'C:\\Users\\pharvie\\Desktop\\Training\\Bit'
+
+    train_df, test_df = download_and_load_datasets(directory)
+
+    tf.logging.set_verbosity(tf.logging.ERROR)
+
+    train_df.head()
+
+    # Training input on the whole training set with no limit on training epochs.
+    train_input_fn = tf.estimator.inputs.pandas_input_fn(
+        train_df, train_df["polarity"], num_epochs=None, shuffle=True)
+
+    # Prediction on the whole training set.
+    predict_train_input_fn = tf.estimator.inputs.pandas_input_fn(
+        train_df, train_df["polarity"], shuffle=False)
+    # Prediction on the test set.
+    predict_test_input_fn = tf.estimator.inputs.pandas_input_fn(
+        test_df, test_df["polarity"], shuffle=False)
+
     url_numeric_feature_column = tf.feature_column.numeric_column('url_length')
     path_numeric_feature_column = tf.feature_column.numeric_column('path_length')
     purity_numeric_column = tf.feature_column.numeric_column('purity')
@@ -57,22 +91,49 @@ def features():
         key='top',
         vocabulary_list=tops, default_value=0)
 
-    return [tf.feature_column.indicator_column(url_length_feature_column), tf.feature_column.indicator_column(tops_feature_column),
-        tf.feature_column.indicator_column(path_length_feature_column), tf.feature_column.indicator_column(purity_feature_column),
-        params_numeric_column]
+    features = [tf.feature_column.indicator_column(url_length_feature_column),
+                tf.feature_column.indicator_column(tops_feature_column),
+                tf.feature_column.indicator_column(path_length_feature_column),
+                tf.feature_column.indicator_column(purity_feature_column),
+                params_numeric_column]
+
+    # Reduce logging output.
+    estimator = tf.estimator.DNNClassifier(
+        hidden_units=[500, 100],
+        feature_columns=features,
+        optimizer=tf.train.AdagradOptimizer(learning_rate=0.003))
+
+    # Training for 1,000 steps means 128,000 training examples with the default
+    # batch size. This is roughly equivalent to 5 epochs since the training dataset
+    # contains 25,000 examples.
+    estimator.train(input_fn=train_input_fn, steps=1000)
+
+    train_eval_result = estimator.evaluate(input_fn=predict_train_input_fn)
+    test_eval_result = estimator.evaluate(input_fn=predict_test_input_fn)
+
+    print("Training set accuracy: {accuracy}".format(**train_eval_result))
+    print("Test set accuracy: {accuracy}".format(**test_eval_result))
 
 
-# Merge positive and negative examples, add a polarity column and shuffle.
-def load_dataset(directory):
-    pos_df = load_directory_data(os.path.join(directory, "pos"))
-    neg_df = load_directory_data(os.path.join(directory, "neg"))
-    pos_df["polarity"] = 1
-    neg_df["polarity"] = 0
-    return pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True)
+    def get_predictions(estimator, input_fn):
+        return [x["class_ids"][0] for x in estimator.predict(input_fn=input_fn)]
 
 
-# Download and process the dataset files.
-def download_and_load_datasets(dataset):
-    train_df = load_dataset(os.path.join(dataset, "train"))
-    test_df = load_dataset(os.path.join(dataset, "test"))
-    return train_df, test_df
+    labels = ["negative", "positive"]
+
+    # Create a confusion matrix on training data.
+    with tf.Graph().as_default():
+        cm = tf.confusion_matrix(train_df["polarity"],
+                                 get_predictions(estimator, predict_train_input_fn))
+        with tf.Session() as session:
+            cm_out = session.run(cm)
+
+    # Normalize the confusion matrix so that each row sums to 1.
+    cm_out = cm_out.astype(float) / cm_out.sum(axis=1)[:, np.newaxis]
+
+    sns.heatmap(cm_out, annot=True, xticklabels=labels, yticklabels=labels)
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.interactive(False)
+    plt.plot()
+    plt.show()

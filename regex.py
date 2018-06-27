@@ -22,6 +22,7 @@ def get():
         'params': r'(.+?)(\??&.+)',
         'end': r'(.+)\/$',
         'ignore': r'(blogger)|(facebook)|(plus\.google)|(blogspot)|(linkedin)',
-        'pure': r'^[\w\d]+$'
+        'pure': r'^[\w\d]+$',
+        'phrases': r'[\w\d]+'
     }
     return regex

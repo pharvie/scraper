@@ -6,18 +6,12 @@ import regex
 
 regex = regex.get()
 
-def reduce(url, host):
+def reduce(url):
     if not requester.validate(url):
         raise InvalidURLException('Cannot reduce invalid url: ' + str(url))
-    if not requester.validate(host):
-        raise InvalidHostException('Cannot fix partiality with invalid host: ' + str(url))
     s = re.search(regex['end'], url)
     if s:
         url = s.group(1)
-    if requester.internal(url, host):
-        s = re.search(regex['params'], url)
-        if s:
-            return s.group(1)
     return url
 
 
