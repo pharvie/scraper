@@ -23,15 +23,17 @@ def request(url):
 
 def parse_text(host):
     print('Parsing', host)
-    splitext = request(host).text.splitlines()
-    for x in range(1, len(splitext)):
-        print(splitext[x])
-        url = splitext[x].strip()
-        if re.search(regex['ext'], splitext[x - 1]) and not re.search(regex['ext'], splitext[x]):
-            if re.search(regex['m3u'], url):
-                parse_text(url)
-            elif re.search(regex['streams'], url):
-                #print('Adding %s' % url)
-                streams.append(url)
+    r = request(host)
+    if r:
+        splitext = r.text.splitlines()
+        for x in range(1, len(splitext)):
+            print(splitext[x])
+            url = splitext[x].strip()
+            if re.search(regex['ext'], splitext[x - 1]) and not re.search(regex['ext'], splitext[x]):
+                if re.search(regex['m3u'], url):
+                    parse_text(url)
+                elif re.search(regex['streams'], url):
+                    #print('Adding %s' % url)
+                    streams.append(url)
     print('Streams of %s %s' % (host, str(streams)))
 
