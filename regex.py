@@ -23,6 +23,7 @@ def get():
         'end': r'(.+)\/$',
         'ignore': r'(blogger)|(facebook)|(plus\.google)|(blogspot)|(linkedin)',
         'pure': r'^[\w\d]+$',
-        'phrases': r'[\w\d]+'
+        'phrases': r'[\w\d]+',
+        'metacharacters': r'^[\w\d]'
     }
     return regex

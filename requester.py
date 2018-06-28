@@ -23,6 +23,15 @@ def play_stream(url):
     player.play()
 """
 
+def metacharacters(url):
+    if not validate(url):
+        raise InvalidURLException('Cannot find metacharacters of invalid url')
+    meta = set()
+    for subpath in subpaths(url):
+        for char in re.findall(regex['metacharacters'], subpath):
+                meta.add(char)
+    return meta
+
 def phrases(url):
     if not validate(url):
         raise InvalidURLException('Cannot find words of invalid url')

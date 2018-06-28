@@ -23,12 +23,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Crawler(object):
-    def __init__(self, test=None, limit=float('inf'), gather=False):
+    def __init__(self, test=None, limit=float('inf'), train=False):
         self.nodes = {}
+        self.siblings = {}
         self.visited = set()
         self.hashes = set()
         self.crawled = set()
-        self.requested = set()
         self.streams = {}
         self.counter = 1
         self.host = None
@@ -36,7 +36,7 @@ class Crawler(object):
         self.limit = limit
         self.queue = Queue()
         self.path = None
-        self.gather = gather
+        self.train = train
         if test:
             self.host = requester.host(test)
             self.nodes[test] = Node(test, None)
@@ -49,37 +49,38 @@ class Crawler(object):
             self.visit(self.host, None, self.host)
             if page != self.host:
                 self.visit(page, self.nodes[self.host], self.host)
-            if self.gather:
+            if self.train:
                 domain, top = requester.remove_top(self.host)
                 self.path = os.path.join('C:\\Users\\pharvie\\Desktop\\Training', domain)
         request = requester.request(page)
         self.crawled.add(page)
         print('Crawling',  page)
-        if request is not None:
+        if request:
             self.counter += 1
             try:
                 soup = BeautifulSoup(request.text, 'html.parser')
             except NotImplementedError:
                 print('The following page caused an error in the soup', str(page))
             else:
-                if soup is not None:
+                if soup:
                     splitext = self.check_text_urls(soup)
                     if splitext:
                         self.parse_text(splitext, page)
                     self.check_ref_urls(soup, page)
-                    #print(self.queue.size())
                     while recurse and self.counter < self.limit and not self.queue.empty():
                         self.crawl(self.queue.dequeue())
 
     def check_ref_urls(self, soup, parent):
-        if soup is not None:
+        if soup:
             for a in soup.find_all('a', href=True):
                 url = a.get('href')
                 if not re.search(regex['invalid'], url) and url != '':
                     url = self.visit(url, self.nodes[parent], self.host)
-                    if url is not None:
+                    if url:
                         self.check(url)
                         if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
+                            self.siblings[url] = len(self.nodes[url].siblings())
+                            print('%s had %s siblings when added to the queue' % (url, self.siblings[url]))
                             self.queue.enqueue(url)
 
     def check_text_urls(self, soup):
@@ -99,56 +100,47 @@ class Crawler(object):
         for x in range(1, len(splitext)):
             url = splitext[x].strip()
             if re.search(regex['ext'], splitext[x-1]) and not re.search(regex['ext'], splitext[x]):
+                if not self.important[self.nodes[parent]]:
+                    self.important[self.nodes[parent]] = True
                 if re.search(regex['streams'], url, re.IGNORECASE) or re.search(regex['m3u'], url, re.IGNORECASE):
-                    url = self.visit(url, self.nodes[parent], parent)
+                    #url = self.visit(url, self.nodes[parent], parent)
                     if url is None:
                         continue
                     prepared_host = requester.prepare(requester.host(url))
                     if re.search(regex['m3u'], url) and prepared_host not in m3us:
                         request = requester.request(url)
-                        if request is not None:
+                        m3us.add(prepared_host)
+                        if request:
                             if request.url != url:
                                 self.visit(request.url, self.nodes[parent], parent)
-                            self.important[self.nodes[parent]] = True
-                            m3us.add(prepared_host)
                             self.extract_file(request)
-                        else:
-                            self.important[self.nodes[url]] = False
-                            self.requested.add(url)
                     elif re.search(regex['streams'], url) and prepared_host not in self.streams:
-                        self.important[self.nodes[parent]] = True
                         if prepared_host not in self.streams:
                             self.streams[prepared_host] = set()
                         self.streams[prepared_host].add(self.host)
                         counter += 1
-                        print(prepared_host, self.streams[prepared_host], 'from', parent)
-                        if counter == 1:
-                            parents = []
-                            for node in self.nodes[url].parents():
-                                parents.append(node.data())
-                            print(parents)
+
             elif requester.validate(url):
                 prepared_host = requester.prepare(requester.host(url))
                 url = self.visit(url, self.nodes[parent], self.host)
-                if url is not None:
+                if url:
                     if (not requester.internal(url, self.host) and prepared_host not in m3us) or requester.internal(url, self.host):
                         m3us.add(prepared_host)
                         self.check(url)
 
-    def check(self, url):
+    def check(self, url, override=False):
         if not requester.validate(url):
             raise InvalidURLException('Cannot check for m3u files of the following url: ' + str(url))
         p = urlparse(url)
         s = p.path + p.query
         if re.search(regex['m3u'], s) or (re.search(regex['dl'], s) and not re.search(regex['ndl'], s)) \
-                or re.search(regex['zip'], s) or re.search(regex['raw'], s):
+                or re.search(regex['zip'], s) or re.search(regex['raw'], s) or override:
             request = requester.request(url)
-            if request is not None:
-                self.visit(request.url, self.nodes[url].parent(), self.host)
+            if request:
+                #self.visit(request.url, self.nodes[url].parent(), self.host)
                 self.extract_file(request)
             else:
                 self.important[self.nodes[url]] = False
-                self.requested.add(url)
 
     def extract_file(self, request):
         file_type = requester.get_format(request)
@@ -159,7 +151,9 @@ class Crawler(object):
         elif file_type == 'zip':
             self.unzip(request)
         elif file_type == 'html':
-            self.crawl(request.url, recurse=False)
+            url = self.visit(request.url, self.nodes[request.url].parent(), self.host)
+            if url:
+                self.crawl(url, recurse=False)
 
     def unzip(self, request):
         if request is None or not isinstance(request, Response):
@@ -197,7 +191,6 @@ class Crawler(object):
         if url != fixed_url:
             if fixed_url in self.nodes:
                 return None
-        self.nodes[url] = Node(fixed_url, parent)
         self.nodes[fixed_url] = Node(fixed_url, parent)
         return fixed_url
 
@@ -208,27 +201,24 @@ class Crawler(object):
         print('In eliminate')
         for node in self.important:
             if self.important[node]:
-                while node.parent() is not None and not self.important[node.parent()]:
-                    self.important[node.parent()] = True
-                    node = node.parent()
-        if self.gather:
+                for parent in node.parents():
+                    self.important[parent] = True
+        if self.train:
             for node in self.important:
                 if not self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
                     print('The following url is to be eliminated', node.data())
-                    #gatherer.add_to_path(self.path, 'neg', node.data())
-                    print(node.data(), 'has', str(len(node.parents())), 'parents')
-                    print(node.data(), 'has', str(len(node.children())), 'children')
-                    print(node.data(), 'has', str(len(node.descendants())), 'descendants')
-                    print(node.data(), 'has', str(len(node.siblings())), 'siblings')
+                    string = node.data() + '\n' + str(node.depth())
+                    gatherer.add_to_path(self.path, 'neg', node.data(), string)
 
             for node in self.important:
                 if self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
                     print('The following url is to be spared', node.data())
-                    #gatherer.add_to_path(self.path, 'pos', node.data())
-                    print(node.data(), 'has', str(node.depth(), 'parents'))
-                    print(node.data(), 'has', str(len(node.children())), 'children')
-                    print(node.data(), 'has', str(len(node.descendants())), 'descendants')
-                    print(node.data(), 'has', str(len(node.siblings())), 'siblings')
+                    string = node.data() + '\n' + str(node.depth())
+                    gatherer.add_to_path(self.path, 'pos', node.data(), string)
 
 
 
+
+
+crawler = Crawler()
+crawler.check('https://manifest.theplatform.com/m/NnzsPC/RUWLKQv5KFEs,X6KmsUDGB3Zc,7kIQQG932Vs0,xjobRXgWDiTT,WKkGR3EWxlMj,8lwm3xhvMJTR,pQvCoP7rBsmZ/1.m3u8?sid=ab3a616e-eee2-4ee7-bb35-88d669ab1753&policy=121497524&date=1530214354279&ip=209.23.210.2&schema=1.1&cid=444f6ba4-9541-485e-82e4-caaa1e6120b8&host=nbchls-prod.nbcuni.com&manifest=M3U&switch=HLSOriginSecure&aam_segments=8129897%2C4739140%2C4738083%2C4741378%2C6677178%2C9299480%2C5877943&_fw_h_referer=www.nbc.com&siteSectionId=nbc_tveverywhere_vod_hub&fallbackSiteSectionId=1676939&player=PDK+6+-+NBC.com+Instance+of%3A+rational-player-production&sig=d5176c942926049bbf0edf4887109523902c2cbdd83f9b976f9f24616fe98cf4')

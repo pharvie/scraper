@@ -17,7 +17,7 @@ def learn(root):
 
     def load_directory_data(directory):
         data = OrderedDict([('url', []), ('top', []), ('url_length', []), ('path_length', []), ('purity', []),
-                            ('queries', []), ('phrases', []), ('last_path_length', [])])
+                            ('queries', []), ('phrases', []), ('last_path_length', []), ('average_subpath_length', [])])
         for file_path in os.listdir(directory):
             with codecs.open(os.path.join(directory, file_path), "r", encoding='latin-1') as f:
                 url = f.read()
@@ -36,6 +36,10 @@ def learn(root):
                     data['last_path_length'].append(len(subpaths[-1]))
                 else:
                     data['last_path_length'].append(0)
+                average = 0
+                for subpath in subpaths:
+                    average += len(subpath)/len(subpaths)
+                data['average_subpath_length'].append(average)
 
         df = pd.DataFrame.from_dict(data)
         print(directory)
@@ -99,6 +103,12 @@ def learn(root):
         source_column=purity_numeric_column,
         boundaries=[-1, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
 
+    average_subpath_length_numeric_column = tf.feature_column.numeric_column('average_subpath_length')
+
+    average_subpath_length_column = tf.feature_column.bucketized_column(
+        source_column=average_subpath_length_numeric_column,
+        boundaries=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100])
+
     top_feature_column = tf.feature_column.categorical_column_with_vocabulary_list(
         key='top',
         vocabulary_list=tops)
@@ -112,6 +122,7 @@ def learn(root):
                 tf.feature_column.indicator_column(path_length_feature_column),
                 tf.feature_column.indicator_column(last_path_length_feature_column),
                 tf.feature_column.indicator_column(purity_feature_column),
+                tf.feature_column.indicator_column(average_subpath_length_column),
                 tf.feature_column.indicator_column(top_feature_column),
                 tf.feature_column.indicator_column(vocab_feature_column)]
 
@@ -132,6 +143,29 @@ def learn(root):
     print("Training set accuracy: {accuracy}".format(**train_eval_result))
     print("Test set accuracy: {accuracy}".format(**test_eval_result))
 
+    def serving_input_fn():
+        feature_placeholders = {
+            'url': tf.placeholder(tf.string, [None]),
+            'top': tf.placeholder(tf.string, [None]),
+            'url_length': tf.placeholder(tf.float32, [None]),
+            'path_length': tf.placeholder(tf.float32, [None]),
+            'purity': tf.placeholder(tf.float32, [None]),
+            'queries': tf.placeholder(tf.float32, [None]),
+            'phrases': tf.placeholder(tf.string, [None]),
+            'last_path_length': tf.placeholder(tf.float32, [None]),
+            'average_subpath_length': tf.placeholder(tf.float32, [None])
+        }
+        features = {
+            key: tf.expand_dims(tensor, -1)
+            for key, tensor in feature_placeholders.items()
+        }
+        return tf.estimator.export.ServingInputReceiver(features, feature_placeholders)
+
+    estimator.export_savedmodel(
+        root,
+        serving_input_fn
+    )
+
     def get_predictions(est, input_fn):
         return [x["class_ids"][0] for x in est.predict(input_fn=input_fn)]
 
@@ -139,8 +173,8 @@ def learn(root):
 
     # Create a confusion matrix on training data.
     with tf.Graph().as_default():
-        cm = tf.confusion_matrix(train_df["polarity"],
-                                 get_predictions(estimator, predict_train_input_fn))
+        cm = tf.confusion_matrix(test_df["polarity"],
+                                 get_predictions(estimator, predict_test_input_fn))
         with tf.Session() as session:
             cm_out = session.run(cm)
 

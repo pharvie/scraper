@@ -10,25 +10,26 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/scraper$crawler.coverage" NAME="crawler Coverage Results" MODIFIED="1530132901894" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$crawler.coverage" NAME="crawler Coverage Results" MODIFIED="1530214798259" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$method_tester.coverage" NAME="method_tester Coverage Results" MODIFIED="1527179974240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$fixer.coverage" NAME="fixer Coverage Results" MODIFIED="1528922603292" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$tree.coverage" NAME="tree Coverage Results" MODIFIED="1529344184160" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$m3uer.coverage" NAME="m3uer Coverage Results" MODIFIED="1530215681715" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$my_regex.coverage" NAME="my_regex Coverage Results" MODIFIED="1529436274388" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$tester_.coverage" NAME="tester  Coverage Results" MODIFIED="1530123133853" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$py_test_in_tester_py.coverage" NAME="py.test in tester.py Coverage Results" MODIFIED="1530107231079" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$my_threader.coverage" NAME="my_threader Coverage Results" MODIFIED="1529938041073" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$selenium.coverage" NAME="selenium Coverage Results" MODIFIED="1530036487753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$path_learner.coverage" NAME="path_learner Coverage Results" MODIFIED="1530125777101" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$tester.coverage" NAME="tester Coverage Results" MODIFIED="1530195206853" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$threader.coverage" NAME="threader Coverage Results" MODIFIED="1530195213005" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$tester.coverage" NAME="tester Coverage Results" MODIFIED="1530201983799" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$threader.coverage" NAME="threader Coverage Results" MODIFIED="1530213764021" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$tester__1_.coverage" NAME="tester  Coverage Results" MODIFIED="1530041410603" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$bit_learner.coverage" NAME="bit_learner Coverage Results" MODIFIED="1530126776217" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$my_requester.coverage" NAME="my_requester Coverage Results" MODIFIED="1529681387338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$namer.coverage" NAME="namer Coverage Results" MODIFIED="1528378576714" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$crawler_test.coverage" NAME="crawler_test Coverage Results" MODIFIED="1528222729088" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$regex.coverage" NAME="regex Coverage Results" MODIFIED="1529434774534" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$gatherer.coverage" NAME="gatherer Coverage Results" MODIFIED="1530134563540" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$gatherer.coverage" NAME="gatherer Coverage Results" MODIFIED="1530214489163" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$trainer.coverage" NAME="trainer Coverage Results" MODIFIED="1530125436332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$ml.coverage" NAME="ml Coverage Results" MODIFIED="1530024551862" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$my_crawler.coverage" NAME="my_crawler Coverage Results" MODIFIED="1529686440520" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -36,7 +37,7 @@
     <SUITE FILE_PATH="coverage/scraper$test_scraper.coverage" NAME="test_scraper Coverage Results" MODIFIED="1527253871887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$opener.coverage" NAME="opener Coverage Results" MODIFIED="1528470942987" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$requester.coverage" NAME="requester Coverage Results" MODIFIED="1530029483671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$learner.coverage" NAME="learner Coverage Results" MODIFIED="1530134666749" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$learner.coverage" NAME="learner Coverage Results" MODIFIED="1530211967388" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$thread.coverage" NAME="thread Coverage Results" MODIFIED="1528898358499" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
@@ -44,8 +45,8 @@
       <file leaf-file-name="tester.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tester.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="290">
-              <caret line="1007" column="19" selection-start-line="1007" selection-start-column="19" selection-end-line="1007" selection-end-column="19" />
+            <state relative-caret-position="851">
+              <caret line="461" column="20" lean-forward="true" selection-start-line="461" selection-start-column="20" selection-end-line="461" selection-end-column="20" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -56,8 +57,8 @@
       <file leaf-file-name="regex.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/regex.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="425">
-              <caret line="25" column="29" selection-start-line="25" selection-start-column="29" selection-end-line="25" selection-end-column="29" />
+            <state relative-caret-position="221">
+              <caret line="13" column="71" lean-forward="true" selection-start-line="11" selection-start-column="8" selection-end-line="13" selection-end-column="71" />
             </state>
           </provider>
         </entry>
@@ -66,7 +67,7 @@
         <entry file="file://$PROJECT_DIR$/fixer.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="170">
-              <caret line="10" column="75" selection-start-line="10" selection-start-column="75" selection-end-line="10" selection-end-column="75" />
+              <caret line="10" column="75" lean-forward="true" selection-start-line="10" selection-start-column="75" selection-end-line="10" selection-end-column="75" />
               <folding>
                 <element signature="e#0#87#0" expanded="true" />
               </folding>
@@ -77,8 +78,8 @@
       <file leaf-file-name="requester.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/requester.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="34" column="11" selection-start-line="34" selection-start-column="11" selection-end-line="34" selection-end-column="11" />
+            <state relative-caret-position="103">
+              <caret line="143" selection-start-line="143" selection-end-line="161" selection-end-column="20" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -86,11 +87,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="threader.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="threader.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/threader.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
-              <caret line="42" column="71" lean-forward="true" selection-start-line="42" selection-start-column="71" selection-end-line="42" selection-end-column="71" />
+            <state relative-caret-position="188">
+              <caret line="43" column="44" lean-forward="true" selection-start-line="43" selection-end-line="44" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
               </folding>
@@ -101,8 +102,8 @@
       <file leaf-file-name="learner.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/learner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="426">
-              <caret line="157" column="57" lean-forward="true" selection-start-line="157" selection-end-line="157" selection-end-column="57" />
+            <state relative-caret-position="244">
+              <caret line="155" column="72" lean-forward="true" selection-start-line="155" selection-start-column="72" selection-end-line="155" selection-end-column="72" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -113,8 +114,8 @@
       <file leaf-file-name="gatherer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gatherer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="324">
-              <caret line="76" column="39" lean-forward="true" selection-start-line="76" selection-start-column="39" selection-end-line="76" selection-end-column="39" />
+            <state relative-caret-position="247">
+              <caret line="71" column="56" selection-start-line="71" selection-start-column="56" selection-end-line="71" selection-end-column="56" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -125,10 +126,22 @@
       <file leaf-file-name="crawler.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/crawler.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="239">
-              <caret line="221" column="60" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
+            <state relative-caret-position="-487">
+              <caret line="110" column="56" lean-forward="true" selection-start-line="110" selection-start-column="56" selection-end-line="110" selection-end-column="56" />
               <folding>
                 <element signature="e#0#90#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="m3uer.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/m3uer.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="272">
+              <caret line="16" column="63" selection-start-line="16" selection-start-column="63" selection-end-line="16" selection-end-column="63" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -150,24 +163,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>http://p3x.eu</find>
-      <find>http://217.182.138.85</find>
-      <find>http://live1.livetvindia.co.in</find>
-      <find>http://flash5.streaming.xdevel.com</find>
-      <find>http://158.69.251.53</find>
-      <find>http://zerocube.co</find>
-      <find>http://best4u.tn</find>
-      <find>http://prod.proserver300.com</find>
-      <find>http://dexonline.ninja</find>
-      <find>http://sang.dynsite.tm</find>
-      <find>\[.+tag</find>
-      <find>http://ns3004967.ip-151-80-35.eu</find>
-      <find>positives</find>
-      <find>Unicode</find>
-      <find>positive</find>
-      <find>pre</find>
-      <find>pos :</find>
-      <find>viber</find>
       <find>stream4free</find>
       <find>pre:</find>
       <find>test</find>
@@ -180,10 +175,26 @@
       <find>http://www.freshiptv.com/new-free-20-iptv-list-premium-worldsport-hd-sd-channels-m3u-m3u8-playlist-09-06-2018</find>
       <find>reduce</find>
       <find>params</find>
+      <find>devcon</find>
+      <find>http://iptveu.de</find>
+      <find>https://cafe-tv.net/wp-content/uploads/2018/06/WC2606n.m3u</find>
+      <find>self.nodes</find>
+      <find>Node</find>
+      <find>self.gather</find>
+      <find>http://iptvurllist.com/download.php?id=234-IPTV-GREECE-Download-File-m3u8-Playlist-Vlc-.html</find>
+      <find>http://iptvurllist.com/download.php?id=339-IPTV-Germany-Link-Url-Server-file-m3u8.html</find>
+      <find>http://iptvurllist.com/download.php?id=323-IPTV-USA-Channels-Links-Server-Playlist-.html</find>
+      <find>http://streamer1.cdn.3dsmart.tv/hls/anyday.tv.3d/stream.m3u8</find>
+      <find>http://iptvurllist.com/index.php?page=32</find>
+      <find>http://iptvurllist.com/view_article.php?id=270-IPTV-USA-Channels-Links-File-m3u8-List-ts-playlist.html</find>
+      <find>is not None:</find>
+      <find>life.ru</find>
+      <find>is not None:</find>
+      <find>.m3u</find>
+      <find>m3u</find>
+      <find>session</find>
     </findStrings>
     <replaceStrings>
-      <replace>__check__</replace>
-      <replace>__shortened__</replace>
       <replace>requester.request</replace>
       <replace>zip</replace>
       <replace>_m3u</replace>
@@ -212,6 +223,8 @@
       <replace>data</replace>
       <replace>check_ref_urls</replace>
       <replace>queries</replace>
+      <replace>self.train</replace>
+      <replace>:</replace>
     </replaceStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -240,18 +253,19 @@
         <option value="$PROJECT_DIR$/plotter.py" />
         <option value="$PROJECT_DIR$/features.py" />
         <option value="$PROJECT_DIR$/exceptions.py" />
-        <option value="$PROJECT_DIR$/regex.py" />
         <option value="$PROJECT_DIR$/fixer.py" />
         <option value="$PROJECT_DIR$/trainer.py" />
         <option value="$PROJECT_DIR$/path_learner.py" />
         <option value="$PROJECT_DIR$/bit_learner.py" />
-        <option value="$PROJECT_DIR$/gatherer.py" />
-        <option value="$PROJECT_DIR$/threader.py" />
-        <option value="$PROJECT_DIR$/requester.py" />
-        <option value="$PROJECT_DIR$/learner.py" />
         <option value="$PROJECT_DIR$/node.py" />
-        <option value="$PROJECT_DIR$/crawler.py" />
+        <option value="$PROJECT_DIR$/regex.py" />
         <option value="$PROJECT_DIR$/tester.py" />
+        <option value="$PROJECT_DIR$/learner.py" />
+        <option value="$PROJECT_DIR$/threader.py" />
+        <option value="$PROJECT_DIR$/gatherer.py" />
+        <option value="$PROJECT_DIR$/crawler.py" />
+        <option value="$PROJECT_DIR$/requester.py" />
+        <option value="$PROJECT_DIR$/m3uer.py" />
       </list>
     </option>
   </component>
@@ -265,7 +279,7 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="363" />
+    <option name="x" value="2245" />
     <option name="y" value="-15" />
     <option name="width" value="1096" />
     <option name="height" value="970" />
@@ -295,7 +309,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.threader">
+  <component name="RunManager" selected="Python.m3uer">
     <configuration name="crawler" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="scraper" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -353,7 +367,7 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="tester" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="m3uer" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="scraper" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -366,7 +380,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tester.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/m3uer.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -393,18 +407,18 @@
     </configuration>
     <list>
       <item itemvalue="Python.learner" />
-      <item itemvalue="Python.tester" />
       <item itemvalue="Python.crawler" />
       <item itemvalue="Python.threader" />
       <item itemvalue="Python.gatherer" />
+      <item itemvalue="Python.m3uer" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.threader" />
-        <item itemvalue="Python.tester" />
-        <item itemvalue="Python.learner" />
-        <item itemvalue="Python.gatherer" />
+        <item itemvalue="Python.m3uer" />
         <item itemvalue="Python.crawler" />
+        <item itemvalue="Python.gatherer" />
+        <item itemvalue="Python.threader" />
+        <item itemvalue="Python.learner" />
       </list>
     </recent_temporary>
   </component>
@@ -422,7 +436,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="1912" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -435,7 +449,7 @@
       <window_info content_ui="combo" id="Project" order="0" weight="0.10520833" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
-      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.45364583" />
+      <window_info anchor="right" id="SciView" order="3" weight="0.45208332" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3995749" />
@@ -450,27 +464,27 @@
     </layout>
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="0" weight="0.10520833" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.45208332" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49940476" visible="true" weight="0.22635494" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49940476" visible="true" weight="0.38788524" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32943678" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3995749" />
       <window_info anchor="right" id="Database" order="4" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.32943678" />
       <window_info anchor="bottom" id="Event Log" order="12" sideWeight="0.5005952" side_tool="true" weight="0.30954996" />
-      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
-      <window_info anchor="right" id="SciView" order="3" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32943678" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="right" id="Coverage" order="5" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info id="Favorites" order="2" side_tool="true" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -491,7 +505,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/bs4/__init__.py" />
     <entry file="file://$USER_HOME$/Downloads/channels.m3u" />
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/bs4/element.py" />
     <entry file="file://$USER_HOME$/Downloads/playlist" />
@@ -618,49 +631,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/regex.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="25" column="29" selection-start-line="25" selection-start-column="29" selection-end-line="25" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/fixer.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
-          <caret line="10" column="75" selection-start-line="10" selection-start-column="75" selection-end-line="10" selection-end-column="75" />
+          <caret line="10" column="75" lean-forward="true" selection-start-line="10" selection-start-column="75" selection-end-line="10" selection-end-column="75" />
           <folding>
             <element signature="e#0#87#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/requester.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="34" column="11" selection-start-line="34" selection-start-column="11" selection-end-line="34" selection-end-column="11" />
-          <folding>
-            <element signature="e#0#17#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/learner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="426">
-          <caret line="157" column="57" lean-forward="true" selection-start-line="157" selection-end-line="157" selection-end-column="57" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gatherer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="324">
-          <caret line="76" column="39" lean-forward="true" selection-start-line="76" selection-start-column="39" selection-end-line="76" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -675,32 +651,79 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/crawler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="221" column="60" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
-          <folding>
-            <element signature="e#0#90#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tester.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="290">
-          <caret line="1007" column="19" selection-start-line="1007" selection-start-column="19" selection-end-line="1007" selection-end-column="19" />
+        <state relative-caret-position="851">
+          <caret line="461" column="20" lean-forward="true" selection-start-line="461" selection-start-column="20" selection-end-line="461" selection-end-column="20" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/learner.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="244">
+          <caret line="155" column="72" lean-forward="true" selection-start-line="155" selection-start-column="72" selection-end-line="155" selection-end-column="72" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gatherer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="247">
+          <caret line="71" column="56" selection-start-line="71" selection-start-column="56" selection-end-line="71" selection-end-column="56" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/threader.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="42" column="71" lean-forward="true" selection-start-line="42" selection-start-column="71" selection-end-line="42" selection-end-column="71" />
+        <state relative-caret-position="188">
+          <caret line="43" column="44" lean-forward="true" selection-start-line="43" selection-end-line="44" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requester.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="103">
+          <caret line="143" selection-start-line="143" selection-end-line="161" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/crawler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-487">
+          <caret line="110" column="56" lean-forward="true" selection-start-line="110" selection-start-column="56" selection-end-line="110" selection-end-column="56" />
+          <folding>
+            <element signature="e#0#90#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/regex.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="71" lean-forward="true" selection-start-line="11" selection-start-column="8" selection-end-line="13" selection-end-column="71" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/m3uer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="63" selection-start-line="16" selection-start-column="63" selection-end-line="16" selection-end-column="63" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

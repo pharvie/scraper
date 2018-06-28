@@ -10,7 +10,7 @@ class MyThread(threading.Thread):
         self.ts_files = []
 
     def run(self):
-        crawler = Crawler(gather=True)
+        crawler = Crawler(train=True)
         crawler.crawl(self.page)
         evaluate_parse(crawler, self.page)
         crawler.eliminate()
@@ -39,7 +39,7 @@ def create_threads():
     thread4 = MyThread('https://freedailyiptv.com')
     thread5 = MyThread('http://www.m3uliste.pw')
     thread6 = MyThread('https://www.list-iptv.com')
-    thread7 = MyThread('http://iptvurllist.com') #raising an empty queue error for some reason
+    thread7 = MyThread('http://iptvurllist.com')
     thread8 = MyThread('http://freeworldwideiptv.com') #503 status code
     thread9 = MyThread('http://ramalin.com')
     return[thread7]

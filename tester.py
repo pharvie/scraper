@@ -827,7 +827,7 @@ def test_parse_with_m3u():
     url6 = 'https://cafe-tv.net/wp-content/uploads/2017/05/italia090501.m3u'
     url7 = 'https://adultswim-vodlive.cdn.turner.com/live/daily_animated_1/stream_3.m3u8'
     url8 = 'https://cafe-tv.net/wp-content/uploads/2017/12/greek1612a.m3u'
-    urls = [url1, url2, url3, url4, url5, url6, url7, url8]
+    urls = [url1, url2, url3, url4, url5, url6, url7, url8, ]
     streams = crawler_helper(urls)
 
     assert 'http://190.2.138.101' in streams
@@ -947,7 +947,9 @@ def test_text_urls():
 def test_ref_urls():
     url1 = 'https://cafe-tv.net/2018/06/iptv-m3u-sport-speciale-coupe-du-monde-russie-2018'
     url2 = 'https://freedailyiptv.com/usa-m3u-free-daily-iptv-list-18-06-2018'
-    urls = [url1, url2]
+    url3 = 'http://iptvurllist.com/download.php?id=148-IPTV-Playlist-Deutsche-Germany-Links-Ts.html'
+
+    urls = [url1, url2, url3]
     streams = crawler_helper(urls, 'ref')
 
     assert 'http://145.239.245.159' in streams
@@ -957,21 +959,7 @@ def test_ref_urls():
     assert 'http://185.2.83.231' in streams
     assert 'http://212.8.250.12' in streams
     assert 'http://mypanel.tv' in streams
-
-
-def test_identical_m3us():
-    crawler = Crawler()
-    url1 = 'http://iptvurllist.com/view_article.php?id=82-IPTV-Italy-Channels-url-Links.html'
-    url1repeat = 'http://iptvurllist.com/upload/file/2016-03-27IPTV Italy Channels url Links.m3u'
-    crawler.crawl(url1, recurse=False)
-    crawler.crawl(url1repeat, recurse=False)
-
-
-def test_eliminate():
-    url = 'https://www.list-iptv.com/'
-    crawler = Crawler(limit=6000)
-    crawler.crawl(url)
-    crawler.eliminate()
+    assert 'http://hdreambox.dyndns.info' in streams
 
 
 def requester_tests():
@@ -1011,5 +999,5 @@ def test_runner():
 
 if __name__ == "__main__":
     print('Running tests...')
-    test_runner()
+    test_parents()
     print('All tests passed!')

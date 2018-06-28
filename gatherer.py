@@ -5,15 +5,18 @@ import hashlib
 import regex
 import requester
 import heapq
+from exceptions import InvalidURLException
 
 regex = regex.get()
 
-def add_to_path(path, polarity, locator, string):
+def add_to_path(path, polarity, url, string):
+    if not requester.validate(url):
+        raise InvalidURLException('Training data must contain a valid url:' + str(url))
     if not os.path.exists(path):
         os.makedirs(path)
         fill(path)
     h = hashlib.md5()
-    h.update(locator.encode('utf-8'))
+    h.update(url.encode('utf-8'))
     name = h.hexdigest()
     rand = randint(1, 4)
     if rand == 1:
@@ -59,13 +62,24 @@ def vocab(root, limit=float('inf')):
     return vocab
 
 
-def iterator(root):
+def purge(root):
+    state = ['train', 'test']
+    polarity = ['pos', 'neg']
+    for s in state:
+        for p in polarity:
+            directory = os.path.join(root, s, p)
+            for filename in os.listdir(directory):
+                path = os.path.join(directory, filename)
+
+def iterator(directory):
     urls = []
-    for file_name in os.listdir(root):
-        path = os.path.join(root, file_name)
+    for filename in os.listdir(directory):
+        path = os.path.join(directory, filename)
         with open(path, 'r') as f:
-            url = f.read()
+            url = f.readlines()[0]
             urls.append(url)
+            print(url)
+            f.close()
     return urls
 
 
@@ -80,3 +94,6 @@ def fill(path):
             subpath = os.path.join(path, s, p)
             if not os.path.exists(subpath):
                 os.makedirs(subpath)
+
+
+purge('C:\\Users\\pharvie\\Desktop\\Training\\freshiptv')
