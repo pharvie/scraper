@@ -123,7 +123,10 @@ class Crawler(object):
                         counter += 1
                         print(prepared_host, self.streams[prepared_host], 'from', parent)
                         if counter == 1:
-                            self.parents(self.nodes[url])
+                            parents = []
+                            for node in self.nodes[url].parents():
+                                parents.append(node.data())
+                            print(parents)
             elif requester.validate(url):
                 prepared_host = requester.prepare(requester.host(url))
                 url = self.visit(url, self.nodes[parent], self.host)
@@ -208,25 +211,24 @@ class Crawler(object):
                 while node.parent() is not None and not self.important[node.parent()]:
                     self.important[node.parent()] = True
                     node = node.parent()
-        for node in self.important:
-            if not self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
-                print('The following url is to be eliminated', node.data())
-                if self.gather:
-                    gatherer.add_to_path(self.path, 'neg', node.data())
+        if self.gather:
+            for node in self.important:
+                if not self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
+                    print('The following url is to be eliminated', node.data())
+                    #gatherer.add_to_path(self.path, 'neg', node.data())
+                    print(node.data(), 'has', str(len(node.parents())), 'parents')
+                    print(node.data(), 'has', str(len(node.children())), 'children')
+                    print(node.data(), 'has', str(len(node.descendants())), 'descendants')
+                    print(node.data(), 'has', str(len(node.siblings())), 'siblings')
 
-        for node in self.important:
-            if self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
-                print('The following url is to be spared', node.data())
-                if self.gather:
-                    gatherer.add_to_path(self.path, 'pos', node.data())
-
-    def parents(self, node):
-        parents = []
-        while node.parent() is not None:
-            parents.append(node.parent().data())
-            node = node.parent()
-        print(parents)
-
+            for node in self.important:
+                if self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
+                    print('The following url is to be spared', node.data())
+                    #gatherer.add_to_path(self.path, 'pos', node.data())
+                    print(node.data(), 'has', str(node.depth(), 'parents'))
+                    print(node.data(), 'has', str(len(node.children())), 'children')
+                    print(node.data(), 'has', str(len(node.descendants())), 'descendants')
+                    print(node.data(), 'has', str(len(node.siblings())), 'siblings')
 
 
 

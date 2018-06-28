@@ -42,7 +42,7 @@ def create_threads():
     thread7 = MyThread('http://iptvurllist.com') #raising an empty queue error for some reason
     thread8 = MyThread('http://freeworldwideiptv.com') #503 status code
     thread9 = MyThread('http://ramalin.com')
-    return[thread1]
+    return[thread7]
     #return [thread1, thread2, thread3, thread4, thread5, thread6, thread7, thread8, thread9]
 
 def run_threads():

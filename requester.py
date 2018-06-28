@@ -29,9 +29,10 @@ def phrases(url):
     path = urlparse(url).path
     phrases = re.findall(regex['phrases'], path)
     phrases = list(filter(lambda x: not re.match(r'^\d+$', x), phrases))
+    phrases = ' '.join(phrases)
     return phrases
 
-def params(url):
+def queries(url):
     if not validate(url):
         raise InvalidURLException('Cannot find params of invalid url')
     parsed = urlparse(url)

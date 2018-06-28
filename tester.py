@@ -386,10 +386,10 @@ def test_phrases():
     phrases3 = requester.phrases('https://www.list-iptv.com/p/telecharger-iptv-france.html')
     phrases4 = requester.phrases('http://www.reddit.com')
 
-    assert phrases1 == ['r', 'all']
-    assert phrases2 == ['free', 'iptv', 'list', 'premium', 'worldsport', 'hd', 'sd', 'channels', 'm3u']
-    assert phrases3 == ['p', 'telecharger', 'iptv', 'france', 'html']
-    assert phrases4 == []
+    assert phrases1 == 'r all'
+    assert phrases2 == 'free iptv list premium worldsport hd sd channels m3u'
+    assert phrases3 == 'p telecharger iptv france html'
+    assert phrases4 == ''
 
 
 def error_check_phrases():
@@ -515,7 +515,7 @@ def error_check_reduce():
             fixer.reduce(url)
 
 
-#Node method
+#node method
 #error checks the initialization of the node class
 def error_check_init_node():
     parent1 = 1
@@ -527,7 +527,7 @@ def error_check_init_node():
             node = Node('Anything', parent)
 
 
-#Node method
+#node method
 #checks the return of the data method
 def test_data():
     node1 = Node('fat cat', None)
@@ -543,7 +543,7 @@ def test_data():
     assert node5.data() == set()
 
 
-#Node method
+#node method
 #checks the set_data method works properly
 def test_set_data():
     node1 = Node('fat cat', None)
@@ -557,7 +557,7 @@ def test_set_data():
     assert node1.data() == 'fat'
     assert node2.data() == 'fat'
 
-#Node method
+#node method
 #checks the return of the parent method
 def test_parent():
     node1 = Node(1, None)
@@ -571,8 +571,8 @@ def test_parent():
     assert node5.parent() == node3
     assert node4.parent().parent() == node5.parent().parent() == node1
 
-#my_node method
-#checks that return of the children method
+#node method
+#checks the return of the children method
 def test_children():
     node1 = Node(1, None)
     node2 = node1.add_child(2)
@@ -585,6 +585,105 @@ def test_children():
     assert node2.children() == [node4, node6]
     assert node3.children() == [node5]
 
+
+def test_has_children():
+    node1 = Node(1, None)
+    node2 = node1.add_child(2)
+    node3 = node1.add_child(3)
+    node4 = node2.add_child(4)
+    node5 = node3.add_child(5)
+    node6 = node2.add_child(6)
+
+    for node in [node1, node2, node3, node4.parent(), node5.parent(), node6.parent()]:
+        assert node.has_children() is True
+
+    for node in [node4, node5, node6]:
+        assert node.has_children() is False
+
+#node method
+#checks the return of the has parent method
+def test_has_parent():
+    node1 = Node(1, None)
+    node2 = node1.add_child(2)
+    node3 = node1.add_child(3)
+    node4 = node2.add_child(4)
+    node5 = node3.add_child(5)
+    node6 = node2.add_child(6)
+
+    for node in [node2, node3, node4, node5, node6]:
+        assert node.has_parent() is True
+
+    for node in [node1, node2.parent(), node3.parent(), node4.parent().parent()]:
+        assert node.has_parent() is False
+
+
+#node method
+#checks the return of the parents method
+def test_parents():
+    node1 = Node(1, None)
+    node2 = node1.add_child(2)
+    node3 = node1.add_child(3)
+    node4 = node2.add_child(4)
+    node5 = node3.add_child(5)
+    node6 = node2.add_child(6)
+
+    assert node1.parents() == []
+    assert node2.parents() == node3. parents() == [node1]
+    assert node4.parents() == node6.parents() == [node2, node1]
+    assert node5.parents() == [node3, node1]
+
+
+#node method
+#checks the return of the descendants method
+def test_descendants():
+    node1 = Node(1, None)
+    node2 = node1.add_child(2)
+    node3 = node1.add_child(3)
+    node4 = node2.add_child(4)
+    node5 = node3.add_child(5)
+    node6 = node2.add_child(6)
+    node7 = node6.add_child(7)
+
+    assert node1.descendants() == [node2, node3, node4, node6, node5, node7]
+    assert node2.descendants() == [node4, node6, node7]
+    assert node3.descendants() == [node5]
+    assert node6.descendants() == [node7]
+    assert node4.descendants() == node5.descendants() == node7.descendants() == []
+
+
+#node method
+#checks the return of the siblings method
+def test_siblings():
+    node1 = Node(1, None)
+    node2 = node1.add_child(2)
+    node3 = node1.add_child(3)
+    node4 = node2.add_child(4)
+    node5 = node3.add_child(5)
+    node6 = node2.add_child(6)
+    node7 = node6.add_child(7)
+
+    assert node1.siblings() == node5.siblings() == node7.siblings() == []
+    assert node2.siblings() == [node3]
+    assert node3.siblings() == [node2]
+    assert node4.siblings() == [node6]
+    assert node6.siblings() == [node4]
+
+
+#node method
+#checks the return of the depth method
+def test_depth():
+    node1 = Node(1, None)
+    node2 = node1.add_child(2)
+    node3 = node1.add_child(3)
+    node4 = node2.add_child(4)
+    node5 = node3.add_child(5)
+    node6 = node2.add_child(6)
+    node7 = node6.add_child(7)
+
+    assert node1.depth() == 0
+    assert node2.depth() == node3.depth() == 1
+    assert node4.depth() == node5.depth() == node6.depth() == 2
+    assert node7.depth() == 3
 
 #Crawler method
 #Error checking for the unzip method
@@ -889,7 +988,8 @@ def fixer_tests():
 
 
 def node_tests():
-    return [error_check_init_node, test_data, test_set_data, test_parent, test_children]
+    return [error_check_init_node, test_data, test_set_data, test_parent, test_children, test_has_children, test_has_parent,
+            test_parents, test_descendants, test_siblings]
 
 
 def queue_tests():
