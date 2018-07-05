@@ -1,4 +1,4 @@
-from exceptions import InvalidURLException, InvalidRequestException, InvalidInputException
+from exceptions import InvalidUrlError, InvalidRequestError, InvalidInputError
 import requester
 import fixer
 import regex
@@ -15,6 +15,7 @@ import sys
 from urllib.parse import urlparse
 import gatherer
 import os.path
+from pympler import asizeof
 
 encodings = ['utf-8', 'latin-1', 'windows-1250', 'ascii']
 regex = regex.get()
@@ -25,7 +26,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class Crawler(object):
     def __init__(self, test=None, limit=float('inf'), train=False):
         self.nodes = {}
-        self.siblings = {}
         self.visited = set()
         self.hashes = set()
         self.crawled = set()
@@ -43,24 +43,26 @@ class Crawler(object):
 
     def crawl(self, page, recurse=True):
         if not requester.validate(page):
-            raise InvalidURLException('Cannot crawl page of invalid url: ' + str(page))
+            raise InvalidUrlError('Cannot crawl page of invalid url: ' + str(page))
         if self.host is None:
             self.host = requester.host(page)
-            self.visit(self.host, None, self.host)
+            self.fix_and_visit(self.host, None, self.host)
             if page != self.host:
-                self.visit(page, self.nodes[self.host], self.host)
+                self.fix_and_visit(page, self.nodes[self.host], self.host)
             if self.train:
-                domain, top = requester.remove_top(self.host)
+                domain, top = fixer.remove_top(self.host)
                 self.path = os.path.join('C:\\Users\\pharvie\\Desktop\\Training', domain)
         request = requester.request(page)
         self.crawled.add(page)
-        print('Crawling',  page)
+        print('Crawling %s: %s' % (page, self.counter))
+        print(asizeof.asizeof(self))
+        print(asizeof.asized(self, detail=1).format())
         if request:
             self.counter += 1
             try:
                 soup = BeautifulSoup(request.text, 'html.parser')
             except NotImplementedError:
-                print('The following page caused an error in the soup', str(page))
+                print('The following page caused an error in the soup %s' % str(page))
             else:
                 if soup:
                     splitext = self.check_text_urls(soup)
@@ -75,12 +77,10 @@ class Crawler(object):
             for a in soup.find_all('a', href=True):
                 url = a.get('href')
                 if not re.search(regex['invalid'], url) and url != '':
-                    url = self.visit(url, self.nodes[parent], self.host)
+                    url = self.fix_and_visit(url, self.nodes[parent], self.host)
                     if url:
                         self.check(url)
                         if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
-                            self.siblings[url] = len(self.nodes[url].siblings())
-                            print('%s had %s siblings when added to the queue' % (url, self.siblings[url]))
                             self.queue.enqueue(url)
 
     def check_text_urls(self, soup):
@@ -103,41 +103,48 @@ class Crawler(object):
                 if not self.important[self.nodes[parent]]:
                     self.important[self.nodes[parent]] = True
                 if re.search(regex['streams'], url, re.IGNORECASE) or re.search(regex['m3u'], url, re.IGNORECASE):
-                    #url = self.visit(url, self.nodes[parent], parent)
+                    if re.search(regex['m3u'], url, re.IGNORECASE):
+                        url = self.fix_and_visit(url, self.nodes[parent], parent)
+                    else:
+                        url = self.fix_and_visit(url, self.nodes[parent], parent, visit=True)
                     if url is None:
                         continue
-                    prepared_host = requester.prepare(requester.host(url))
+                    prepared_host = fixer.prepare(url, prepare_netloc=True)
                     if re.search(regex['m3u'], url) and prepared_host not in m3us:
                         request = requester.request(url)
                         m3us.add(prepared_host)
                         if request:
                             if request.url != url:
-                                self.visit(request.url, self.nodes[parent], parent)
+                                self.fix_and_visit(request.url, self.nodes[parent], parent)
                             self.extract_file(request)
                     elif re.search(regex['streams'], url) and prepared_host not in self.streams:
                         if prepared_host not in self.streams:
                             self.streams[prepared_host] = set()
                         self.streams[prepared_host].add(self.host)
                         counter += 1
-
+                        if counter == 1:
+                            parents = []
+                            for p in self.nodes[parent].parents():
+                                parents.append(p.data())
+                            #print(parents)
+                        print(prepared_host, self.streams[prepared_host])
             elif requester.validate(url):
-                prepared_host = requester.prepare(requester.host(url))
-                url = self.visit(url, self.nodes[parent], self.host)
-                if url:
-                    if (not requester.internal(url, self.host) and prepared_host not in m3us) or requester.internal(url, self.host):
-                        m3us.add(prepared_host)
-                        self.check(url)
+                prepared_host = fixer.prepare(url, prepare_netloc=True)
+                url = self.fix_and_visit(url, self.nodes[parent], self.host)
+                if url and (not requester.internal(url, self.host) and prepared_host not in m3us or requester.internal(url, self.host)):
+                    m3us.add(prepared_host)
+                    self.check(url)
 
-    def check(self, url, override=False):
+    def check(self, url):
         if not requester.validate(url):
-            raise InvalidURLException('Cannot check for m3u files of the following url: ' + str(url))
+            raise InvalidUrlError('Cannot check for m3u files of the following url: %s' % str(url))
         p = urlparse(url)
         s = p.path + p.query
-        if re.search(regex['m3u'], s) or (re.search(regex['dl'], s) and not re.search(regex['ndl'], s)) \
-                or re.search(regex['zip'], s) or re.search(regex['raw'], s) or override:
+        if re.search(regex['m3u'], s) or (re.search(regex['dl'], s) and not re.search(regex['ndl'], s)) or re.search(regex['zip'], s) \
+                or re.search(regex['raw'], s):
             request = requester.request(url)
             if request:
-                #self.visit(request.url, self.nodes[url].parent(), self.host)
+                self.fix_and_visit(request.url, self.nodes[url].parent(), self.host)
                 self.extract_file(request)
             else:
                 self.important[self.nodes[url]] = False
@@ -151,13 +158,11 @@ class Crawler(object):
         elif file_type == 'zip':
             self.unzip(request)
         elif file_type == 'html':
-            url = self.visit(request.url, self.nodes[request.url].parent(), self.host)
-            if url:
-                self.crawl(url, recurse=False)
+            self.crawl(request.url, recurse=False)
 
     def unzip(self, request):
         if request is None or not isinstance(request, Response):
-            raise InvalidRequestException('Cannot unzip invalid request')
+            raise InvalidRequestError('Cannot unzip invalid request')
         try:
             z = zipfile.ZipFile(io.BytesIO(request.content))
         except BadZipFile:
@@ -179,19 +184,21 @@ class Crawler(object):
                                     self.parse_text(splitext, parent=request.url)
                                     break
 
-    def visit(self, url, parent, host):
+    def fix_and_visit(self, url, parent, host, visit=True):
         if url is None or not isinstance(url, str):
-            raise InvalidInputException('Cannot visit invalid url ' + str(url))
+            raise InvalidInputError('Cannot visit invalid url: %s' % str(url))
         if url in self.nodes:
             return None
         fixed_url = fixer.phish(fixer.partial(url, host))
         if not requester.validate(fixed_url):
             return None
-        fixed_url = fixer.reduce(fixer.expand(fixed_url))
+        if not requester.internal(fixed_url, host):
+            fixed_url = fixer.expand(fixed_url)
         if url != fixed_url:
             if fixed_url in self.nodes:
                 return None
-        self.nodes[fixed_url] = Node(fixed_url, parent)
+        if visit:
+            self.nodes[fixed_url] = Node(fixed_url, parent)
         return fixed_url
 
     def get_streams(self):
@@ -207,18 +214,14 @@ class Crawler(object):
             for node in self.important:
                 if not self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
                     print('The following url is to be eliminated', node.data())
-                    string = node.data() + '\n' + str(node.depth())
+                    string = node.data() + '\n' + 'Parents: ' + str(node.depth())
                     gatherer.add_to_path(self.path, 'neg', node.data(), string)
 
             for node in self.important:
                 if self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
                     print('The following url is to be spared', node.data())
-                    string = node.data() + '\n' + str(node.depth())
+                    string = node.data() + '\n' + 'Parents: ' + str(node.depth())
                     gatherer.add_to_path(self.path, 'pos', node.data(), string)
 
 
 
-
-
-crawler = Crawler()
-crawler.check('https://manifest.theplatform.com/m/NnzsPC/RUWLKQv5KFEs,X6KmsUDGB3Zc,7kIQQG932Vs0,xjobRXgWDiTT,WKkGR3EWxlMj,8lwm3xhvMJTR,pQvCoP7rBsmZ/1.m3u8?sid=ab3a616e-eee2-4ee7-bb35-88d669ab1753&policy=121497524&date=1530214354279&ip=209.23.210.2&schema=1.1&cid=444f6ba4-9541-485e-82e4-caaa1e6120b8&host=nbchls-prod.nbcuni.com&manifest=M3U&switch=HLSOriginSecure&aam_segments=8129897%2C4739140%2C4738083%2C4741378%2C6677178%2C9299480%2C5877943&_fw_h_referer=www.nbc.com&siteSectionId=nbc_tveverywhere_vod_hub&fallbackSiteSectionId=1676939&player=PDK+6+-+NBC.com+Instance+of%3A+rational-player-production&sig=d5176c942926049bbf0edf4887109523902c2cbdd83f9b976f9f24616fe98cf4')

@@ -1,5 +1,6 @@
 import pytest
-from exceptions import InvalidURLException, InvalidHostException, InvalidRequestException, InvalidInputException, EmptyQueueException
+from exceptions import (InvalidUrlError, InvalidHostError, InvalidRequestError, InvalidInputError, EmptyQueueError,
+                        UrlInDatabaseError, MultipleUrlsInDatabaseError)
 from crawler import Crawler
 import requester
 import fixer
@@ -8,7 +9,7 @@ from my_queue import Queue
 import re
 import zipfile
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from database import Visitor
 
 def test_validate():
     url1 = 'https://www.reddit.com'
@@ -29,7 +30,6 @@ def test_validate():
 
     assert valid_urls == [url1, url7, url8, url9, url10], 'Error: Invalid urls in valid urls'
 
-
 def test_host():
     url1 = 'http://www.reddit.com/r/all'
     url2 = 'http://www.reddit.com/r/aww'
@@ -44,7 +44,6 @@ def test_host():
     assert requester.host(url5) == 'http://185.2.83.60:8080', 'Error: incorrect host for url'
     assert requester.host(url5) == requester.host(url6), 'Error: host of links do not match'
 
-
 def error_check_host():
     url1 = None
     url2 = 23
@@ -52,19 +51,18 @@ def error_check_host():
     url4 = 'www.google.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             requester.host(url)
 
-
 def test_remove_identifier():
-    loc1 = requester.remove_identifier('www.reddit.com')
-    loc2 = requester.remove_identifier('ramalin.com')
-    loc3 = requester.remove_identifier('www2.ramalin.com')
+    url1 = requester.remove_identifier('http://www.reddit.com')
+    url2 = requester.remove_identifier('http://ramalin.com')
+    url3 = requester.remove_identifier('http://www.ramalin.com')
+    url4 = requester.remove_identifier('http://www.ip.akaid.com')
 
-    assert loc1 == 'reddit.com'
-    assert loc2 == 'ramalin.com'
-    assert loc3 == 'ramalin.com'
-
+    assert url1 == 'http://reddit.com'
+    assert url2 == url3 == 'http://ramalin.com'
+    assert url4 == 'http://ip.akaid.com'
 
 def error_check_remove_identifier():
     loc1 = None
@@ -73,9 +71,8 @@ def error_check_remove_identifier():
     loc4 = {}
     locs = [loc1, loc2, loc3, loc4]
     for loc in locs:
-        with pytest.raises(InvalidInputException):
+        with pytest.raises(InvalidUrlError):
             requester.remove_identifier(loc)
-
 
 def test_internal():
     url1 = 'https://www.reddit.com'
@@ -99,9 +96,6 @@ def test_internal():
     internal_func(url1)
     internal_func(url2)
 
-
-#my_requester
-
 def error_check_internal():
     url1 = None
     url2 = 23
@@ -110,11 +104,10 @@ def error_check_internal():
     valid = 'http://www.reddit.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             requester.internal(url, valid)
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             requester.internal(valid, url)
-
 
 def test_request():
     url1 = 'https://www.google.com'
@@ -129,7 +122,6 @@ def test_request():
 
     assert valid_requests == [url1, url2]
 
-
 def error_check_request():
     url1 = None
     url2 = 23
@@ -137,9 +129,8 @@ def error_check_request():
     url4 = 'www.google.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             requester.request(url)
-
 
 def test_get_format():
     request1 = requester.request('http://freedailyiptv.com/links/29-05-2018/SE_freedailyiptv.com.m3u')
@@ -170,7 +161,6 @@ def test_get_format():
     for f in htmls:
         assert f == 'html', 'Error: incorrect format'
 
-
 def error_check_get_format():
     request1 = None
     request2 = 23
@@ -178,9 +168,8 @@ def error_check_get_format():
     request4 = 'www.google.com'
     requests = [request1, request2, request3, request4]
     for request in requests:
-        with pytest.raises(InvalidRequestException):
+        with pytest.raises(InvalidRequestError):
             requester.get_format(request)
-
 
 def test_hash_content():
     def hash_unzip(f):
@@ -203,100 +192,14 @@ def test_hash_content():
     for f in [file5, file6]:
         assert requester.hash_content(f) == '06af3dfa1ad9a1cc56331efa5bbb41e4a1c7b48e'
 
-
 def error_check_hash_content():
     file1 = None
     file2 = 23
     file3 = []
     file4 = open(r'C:\Users\pharvie\Desktop\Test Cases\America1.zip')
     for f in [file1, file2, file3, file4]:
-        with pytest.raises(InvalidInputException):
+        with pytest.raises(InvalidInputError):
             requester.hash_content(f)
-
-
-def test_deport():
-    url1 = requester.deport('http://192.68.132.1:800')
-    url2 = requester.deport('http://132.100.12.1')
-    url3 = requester.deport('http://www.fattyport:80')
-    url4 = requester.deport('http://www.something:81')
-    url5 = requester.deport('http://www.otherthing')
-    url6 = requester.deport('http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac='
-                            '00:1A:79:3A:2D:B9&uid=35640')
-    url7 = requester.deport('http://s0.balkan-x.net:80/playlist?type=m3u&deviceMac=00:1A:79:3A:2D:B9')
-
-    assert url1 == 'http://192.68.132.1'
-    assert url2 == 'http://132.100.12.1'
-    assert url3 == 'http://www.fattyport'
-    assert url4 == 'http://www.something'
-    assert url5 == 'http://www.otherthing'
-    assert url6 == 'http://s4.bossna-caffe.com/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640'
-    assert url7 == 'http://s0.balkan-x.net/playlist?type=m3u&deviceMac=00:1A:79:3A:2D:B9'
-
-
-def error_check_deport():
-    url1 = None
-    url2 = 23
-    url3 = []
-    url4 = 'www.reddit.com'
-    for url in [url1, url2, url3, url4]:
-        with pytest.raises(InvalidURLException):
-            requester.deport(url)
-
-
-def test_prepare():
-    url1 = requester.prepare('http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac='
-                             '00:1A:79:3A:2D:B9&uid=35640')
-    url2 = requester.prepare('http://s0.balkan-x.net:80/playlist?type=m3u&deviceMac=00:1A:79:3A:2D:B9')
-    url3 = requester.prepare('http://192.68.132.1:800')
-    url4 = requester.prepare('http://www.soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
-    url5 = requester.prepare('http://www.reddit.com')
-    url6 = requester.prepare('http://www.s4.bossna-caffe.com:40/hls/1200.m3u8?channelId=1200&deviceMac='
-                             '00:1A:79:3A:2D:B9&uid=35640')
-    url7 = requester.prepare('http://www.s0.balkan-x.net:40/playlist?type=m3u&deviceMac=00:1A:79:3A:2D:B9')
-
-    assert url1 == url6 == 'http://s4.bossna-caffe.com'
-    assert url2 == url7 == 'http://s0.balkan-x.net'
-    assert url3 == 'http://192.68.132.1'
-    assert url4 == 'http://soledge7.dogannet.tv'
-    assert url5 == 'http://reddit.com'
-
-
-def error_check_prepare():
-    url1 = None
-    url2 = 23
-    url3 = '//www.reddit.com'
-    url4 = 'www.google.com'
-    urls = [url1, url2, url3, url4]
-    for url in urls:
-        with pytest.raises(InvalidURLException):
-            requester.prepare(url)
-
-
-def test_remove_top():
-    domain1, top1 = requester.remove_top('http://www.reddit.com/r/all')
-    domain2, top2 = requester.remove_top('http://www.ak-ahmaid.1up.next.com/anythinggoes')
-    domain3, top3 = requester.remove_top('http://bit.ly/AWEr')
-    domain4, top4 = requester.remove_top('https://goo.gl/x6khNK')
-
-    assert domain1 == 'reddit'
-    assert top1 == top2 == 'com'
-    assert domain2 == 'ak-ahmaid.1up.next'
-    assert domain3 == 'bit'
-    assert top3 == 'ly'
-    assert domain4 == 'goo'
-    assert top4 == 'gl'
-
-
-def error_check_remove_top():
-    url1 = None
-    url2 = 23
-    url3 = []
-    url4 = 'www.reddit.com'
-    urls = [url1, url2, url3, url4]
-    for url in urls:
-        with pytest.raises(InvalidURLException):
-            requester.remove_top(url)
-
 
 def test_subpaths():
     url1 = 'http://reddit.com/r/all'
@@ -313,7 +216,6 @@ def test_subpaths():
         subpaths = requester.subpaths(url)
         assert subpaths == []
 
-
 def error_check_subpaths():
     url1 = None
     url2 = 23
@@ -321,9 +223,8 @@ def error_check_subpaths():
     url4 = 'www.reddit.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             requester.subpaths(url)
-
 
 def test_purity():
     purity1 = requester.purity(['r', 'all'])
@@ -340,7 +241,6 @@ def test_purity():
     assert purity5 == 0
     assert purity6 == -1
 
-
 def error_check_purity():
     sub1 = None
     sub2 = 23
@@ -348,11 +248,10 @@ def error_check_purity():
     sub4 = 'www.reddit.com'
     subs = [sub1, sub2, sub3, sub4]
     for sub in subs:
-        with pytest.raises(InvalidURLException):
-            requester.remove_top(sub)
+        with pytest.raises(InvalidUrlError):
+            fixer.remove_top(sub)
 
-
-def test_params():
+def test_queries():
     url1 = 'https://www.list-iptv.com/search/label/Download%20iptv%20uk?&max-results=10'
     url2 = 'http://www.facebook.com/sharer.php?u=https://www.list-iptv.com/'
     url3 = 'https://i0.wp.com/cafe-tv.net/wp-content/uploads/2017/11/Extension-exodus-Repo-Addon-Kodi-install-3.jpg?fit=985%2C501&ssl=1'
@@ -363,34 +262,33 @@ def test_params():
     url8 = 'http://www.reddit.com/r/all/fiteme'
 
     for url in [url1, url2, url3, url4]:
-        assert requester.params(url) == 1
+        assert requester.queries(url) == 1
 
     for url in [url5, url6, url7, url8]:
-        assert requester.params(url) == 0
+        assert requester.queries(url) == 0
 
-
-def error_check_params():
+def error_check_queries():
     url1 = None
     url2 = 23
     url3 = []
     url4 = 'www.reddit.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
-            requester.params(url)
-
+        with pytest.raises(InvalidUrlError):
+            requester.queries(url)
 
 def test_phrases():
     phrases1 = requester.phrases('http://www.reddit.com/r/all')
     phrases2 = requester.phrases('http://www.freshiptv.com/free-30-iptv-list-premium-worldsport-hd-sd-channels-m3u')
     phrases3 = requester.phrases('https://www.list-iptv.com/p/telecharger-iptv-france.html')
     phrases4 = requester.phrases('http://www.reddit.com')
+    phrases5 = requester.phrases('https://www.list-iptv.com/search/label/IPTV%20England')
 
-    assert phrases1 == 'r all'
-    assert phrases2 == 'free iptv list premium worldsport hd sd channels m3u'
-    assert phrases3 == 'p telecharger iptv france html'
-    assert phrases4 == ''
-
+    assert phrases1 == ['r', 'all']
+    assert phrases2 == ['free', 'iptv', 'list', 'premium', 'worldsport', 'hd', 'sd', 'channels', 'm3u']
+    assert phrases3 == ['p', 'telecharger', 'iptv', 'france', 'html']
+    assert phrases4 == []
+    assert phrases5 == ['search', 'label', 'IPTV', 'England']
 
 def error_check_phrases():
     url1 = None
@@ -399,11 +297,115 @@ def error_check_phrases():
     url4 = 'www.reddit.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             requester.phrases(url)
 
+#fixer_method
+#checks the return of the reduce method
+def test_reduce():
+    url1 = fixer.reduce('http://reddit.com/')
+    url2 = fixer.reduce('http://reddit.com')
 
-#my_fixer method method
+    assert url1 == url2
+
+#fixer method
+#error checks the reduce method
+def error_check_reduce():
+    url1 = None
+    url2 = 23
+    url3 = '//www.reddit.com'
+    url4 = 'www.google.com'
+    urls = [url1, url2, url3, url4]
+    for url in urls:
+        with pytest.raises(InvalidUrlError):
+            fixer.reduce(url)
+
+def test_deport():
+    url1 = fixer.deport('http://192.68.132.1:800')
+    url2 = fixer.deport('http://132.100.12.1')
+    url3 = fixer.deport('http://www.fattyport:80')
+    url4 = fixer.deport('http://www.something:81')
+    url5 = fixer.deport('http://www.otherthing')
+    url6 = fixer.deport('http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac='
+                            '00:1A:79:3A:2D:B9&uid=35640')
+    url7 = fixer.deport('http://s0.balkan-x.net:80/playlist?type=m3u&deviceMac=00:1A:79:3A:2D:B9')
+
+    assert url1 == 'http://192.68.132.1'
+    assert url2 == 'http://132.100.12.1'
+    assert url3 == 'http://www.fattyport'
+    assert url4 == 'http://www.something'
+    assert url5 == 'http://www.otherthing'
+    assert url6 == 'http://s4.bossna-caffe.com/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640'
+    assert url7 == 'http://s0.balkan-x.net/playlist?type=m3u&deviceMac=00:1A:79:3A:2D:B9'
+
+def error_check_deport():
+    url1 = None
+    url2 = 23
+    url3 = []
+    url4 = 'www.reddit.com'
+    for url in [url1, url2, url3, url4]:
+        with pytest.raises(InvalidUrlError):
+            fixer.deport(url)
+
+def test_remove_top():
+    domain1, top1 = fixer.remove_top('http://www.reddit.com/r/all')
+    domain2, top2 = fixer.remove_top('http://www.ak-ahmaid.1up.next.com/anythinggoes')
+    domain3, top3 = fixer.remove_top('http://bit.ly/AWEr')
+    domain4, top4 = fixer.remove_top('https://goo.gl/x6khNK')
+
+    assert domain1 == 'reddit'
+    assert top1 == top2 == 'com'
+    assert domain2 == 'ak-ahmaid.1up.next'
+    assert domain3 == 'bit'
+    assert top3 == 'ly'
+    assert domain4 == 'goo'
+    assert top4 == 'gl'
+
+def error_check_remove_top():
+    url1 = None
+    url2 = 23
+    url3 = []
+    url4 = 'www.reddit.com'
+    urls = [url1, url2, url3, url4]
+    for url in urls:
+        with pytest.raises(InvalidUrlError):
+            fixer.remove_top(url)
+
+def test_prepare():
+    url1 = fixer.prepare('http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640')
+    url2 = fixer.prepare('http://www.s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640/')
+    url3 = fixer.prepare('http://192.68.132.1:800')
+    url4 = fixer.prepare('http://192.68.132.1:400')
+    url5 = fixer.prepare('http://www.soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
+    url6 = fixer.prepare('http://soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
+    url7 = fixer.prepare('http://reddit.com')
+
+    assert url1 == url2 == 'http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640'
+    assert url3 == 'http://192.68.132.1:800'
+    assert url4 == 'http://192.68.132.1:400'
+    assert url5 == url6 == 'http://soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8'
+    assert url7 == 'http://reddit.com'
+
+def test_prepare_netloc():
+    url1 = fixer.prepare('http://topiptv.net:5890/live/2505/2505/818.ts', prepare_netloc=True)
+    url2 = fixer.prepare('http://topiptv.net:5890/live/2505/2505/3006.ts', prepare_netloc=True)
+    url3 = fixer.prepare('http://www.clientportal.link:8080/live/neri/neri123/9423.ts', prepare_netloc=True)
+    url4 = fixer.prepare('http://clientportal.link:420/live/neri/neri123/9423.ts', prepare_netloc=True)
+
+    assert url1 == url2 == 'http://topiptv.net'
+    assert url3 == url4 == 'http://clientportal.link'
+
+def error_check_prepare():
+    url1 = None
+    url2 = 23
+    url3 = '//www.reddit.com'
+    url4 = 'www.google.com'
+    urls = [url1, url2, url3, url4]
+    for url in urls:
+        with pytest.raises(InvalidUrlError):
+            fixer.prepare(url)
+
+#fixer method method
 #checks the return of the partial method
 def test_partial():
     host = 'https://www.reddit.com'
@@ -422,8 +424,7 @@ def test_partial():
     assert url6 == 'https://reddit.com/r/all'
     assert url7 == 'http://reddit.com/r/all'
 
-
-#my_fixer method
+#fixer method
 #error checks the partial method
 def error_check_partial():
     host = 'https://www.reddit.com'
@@ -432,14 +433,13 @@ def error_check_partial():
     url3 = []
     urls = [url1, url2, url3]
     for url in urls:
-        with pytest.raises(InvalidInputException):
+        with pytest.raises(InvalidInputError):
             fixer.partial(url, host)
     for url in urls:
-        with pytest.raises(InvalidHostException):
+        with pytest.raises(InvalidHostError):
             fixer.partial(host, url)
 
-
-#my_fixer method
+#fixer method
 #checks the return of the phish method
 def test_phish():
     url1 = fixer.phish('http://198.255.114.218:8000/get.php?username=j9&password;=j9&type;=m3u')
@@ -452,19 +452,17 @@ def test_phish():
     assert url3 == 'http://www.reddit.com/abc;def'
     assert url4 == 'http://iptvurllist.com/upload/file/2016-03-27IPTV%20Italy%20Channels%20url%20Links.m3u'
 
-
-#my_fixer method
+#fixer method
 #error checks the phish method
 def error_check_phish():
     url1 = None
     url2 = 23
     urls = [url1, url2]
     for url in urls:
-        with pytest.raises(InvalidInputException):
+        with pytest.raises(InvalidInputError):
             fixer.phish(url)
 
-
-#my_fixer method
+#fixer method
 #checks the return of the expand method
 def test_expand():
     url1 = fixer.expand('https://www.reddit.com')
@@ -480,8 +478,7 @@ def test_expand():
     assert url5 == 'http://163.172.51.84:25461/live/superiptv1/superiptv111/21523.ts'
     assert requester.host(url6) == 'https://doc-10-50-docs.googleusercontent.com'
 
-
-#my_fixer method
+#fixer method
 #error checks the expand method
 def error_check_expand():
     url1 = None
@@ -490,30 +487,8 @@ def error_check_expand():
     url4 = 'www.google.com'
     urls = [url1, url2, url3, url4]
     for url in urls:
-        with pytest.raises(InvalidURLException):
+        with pytest.raises(InvalidUrlError):
             fixer.expand(url)
-
-
-#my fixer_method
-#checks the return of the reduce method
-def test_reduce():
-    url1 = fixer.reduce('http://reddit.com/')
-    url2 = fixer.reduce('http://reddit.com')
-
-    assert url1 == url2
-
-#my_fixer method
-#error checks the reduce method
-def error_check_reduce():
-    url1 = None
-    url2 = 23
-    url3 = '//www.reddit.com'
-    url4 = 'www.google.com'
-    urls = [url1, url2, url3, url4]
-    for url in urls:
-        with pytest.raises(InvalidURLException):
-            fixer.reduce(url)
-
 
 #node method
 #error checks the initialization of the node class
@@ -523,9 +498,8 @@ def error_check_init_node():
     parent3 = set()
     parent4 = 'string'
     for parent in [parent1, parent2, parent3, parent4]:
-        with pytest.raises(InvalidInputException):
-            node = Node('Anything', parent)
-
+        with pytest.raises(InvalidInputError):
+            Node('Anything', parent)
 
 #node method
 #checks the return of the data method
@@ -541,7 +515,6 @@ def test_data():
     assert node3.data() == 'Anything goes'
     assert node4.data() == 4
     assert node5.data() == set()
-
 
 #node method
 #checks the set_data method works properly
@@ -585,7 +558,6 @@ def test_children():
     assert node2.children() == [node4, node6]
     assert node3.children() == [node5]
 
-
 def test_has_children():
     node1 = Node(1, None)
     node2 = node1.add_child(2)
@@ -616,7 +588,6 @@ def test_has_parent():
     for node in [node1, node2.parent(), node3.parent(), node4.parent().parent()]:
         assert node.has_parent() is False
 
-
 #node method
 #checks the return of the parents method
 def test_parents():
@@ -631,7 +602,6 @@ def test_parents():
     assert node2.parents() == node3. parents() == [node1]
     assert node4.parents() == node6.parents() == [node2, node1]
     assert node5.parents() == [node3, node1]
-
 
 #node method
 #checks the return of the descendants method
@@ -650,7 +620,6 @@ def test_descendants():
     assert node6.descendants() == [node7]
     assert node4.descendants() == node5.descendants() == node7.descendants() == []
 
-
 #node method
 #checks the return of the siblings method
 def test_siblings():
@@ -667,7 +636,6 @@ def test_siblings():
     assert node3.siblings() == [node2]
     assert node4.siblings() == [node6]
     assert node6.siblings() == [node4]
-
 
 #node method
 #checks the return of the depth method
@@ -695,10 +663,8 @@ def error_check_unzip():
     request4 = 'www.google.com'
     requests = [request1, request2, request3, request4]
     for request in requests:
-        with pytest.raises(InvalidRequestException):
+        with pytest.raises(InvalidRequestError):
             crawler.unzip(request)
-
-
 
 #Queue method
 #Checks that the enqueue methods works correctly by using the size method
@@ -714,7 +680,6 @@ def test_enqueue():
     q.enqueue(8)
 
     assert q.size() == 5
-
 
 #Queue method
 #Checks the dequeue methods work correctly by checking its return
@@ -744,21 +709,19 @@ def test_dequeue():
 
     assert order == [3, 4, 5, 6]
 
-
 #Queue method
 #Error checks the dequeue method
 def error_check_dequeue():
     q = Queue()
 
-    with pytest.raises(EmptyQueueException):
+    with pytest.raises(EmptyQueueError):
         q.dequeue()
 
     q.enqueue(1)
     q.dequeue()
 
-    with pytest.raises(EmptyQueueException):
+    with pytest.raises(EmptyQueueError):
         q.dequeue()
-
 
 #Queue method
 #Checks the return of the peek method
@@ -780,15 +743,14 @@ def test_peek():
 def error_check_peek():
         q = Queue()
 
-        with pytest.raises(EmptyQueueException):
+        with pytest.raises(EmptyQueueError):
             q.peek()
 
         q.enqueue(1)
         q.dequeue()
 
-        with pytest.raises(EmptyQueueException):
+        with pytest.raises(EmptyQueueError):
             q.peek()
-
 
 #my_tester method
 #A helper method that takes in a list of urls, creates a test helper for each url, and concatenates the streams found
@@ -815,7 +777,6 @@ def crawler_helper(urls, method='check'):
             streams.add(stream)
     return streams
 
-
 #Crawler method
 #Tests that the crawler correctly parse m3us
 def test_parse_with_m3u():
@@ -827,7 +788,7 @@ def test_parse_with_m3u():
     url6 = 'https://cafe-tv.net/wp-content/uploads/2017/05/italia090501.m3u'
     url7 = 'https://adultswim-vodlive.cdn.turner.com/live/daily_animated_1/stream_3.m3u8'
     url8 = 'https://cafe-tv.net/wp-content/uploads/2017/12/greek1612a.m3u'
-    urls = [url1, url2, url3, url4, url5, url6, url7, url8, ]
+    urls = [url1, url2, url3, url4, url5, url6, url7, url8]
     streams = crawler_helper(urls)
 
     assert 'http://190.2.138.101' in streams
@@ -840,7 +801,6 @@ def test_parse_with_m3u():
     assert 'http://82.192.84.30' in streams
     assert 'http://streamer-cache.grnet.gr' in streams
     assert 'http://178.62.176.153' in streams
-
 
 #Crawler method
 #Tests that hte crawler correctly parses m3us from download files
@@ -883,7 +843,6 @@ def test_parse_with_zip():
     assert 'http://globiptv.com' in streams
     assert 'http://biloiptv.eu.com' in streams
 
-
 #Crawler method
 #Tests that the crawler correctly opens m3u files it finds while parsing an m3u file
 def test_parse_text_from_parse():
@@ -909,13 +868,16 @@ def test_parse_with_relatives():
     url2 = 'https://ucankus-live.cdnnew.com/ucankus/ucankus.m3u8'  # ts files only
     url3 = 'http://publish.thewebstream.co:1935/studio66tv/_definst_/studio66tv_channel11/playlist.m3u8'  # m3u file
     url4 = 'http://bqgsd19q.rocketcdn.com/kralpop_720/chunklist.m3u8'  # ts files only
-    urls = [url1, url2, url3, url4]
+    url5 = 'http://turkmedya.radyotvonline.com/turkmedya/ligradyo.stream/chunklist_w1493895268.m3u8'
+    urls = [url1, url2, url3, url4, url5]
+    urls = [url5]
     streams = crawler_helper(urls)
     
     assert 'http://soledge7.dogannet.tv' in streams
     assert 'https://ucankus-live.cdnnew.com' in streams
     assert 'http://publish.thewebstream.co' in streams
     assert 'http://bqgsd19q.rocketcdn.com' in streams
+    assert 'http://turkmedya.radyotvonline.com' in streams
 
 #Crawler method
 #Tests the crawler correctly finds and parses m3u and ts files in the text of a web page
@@ -941,7 +903,6 @@ def test_text_urls():
     assert 'http://mlsh.co'
     assert 'http://145.239.205.121' in streams
 
-
 #Crawler method
 #Tests that the crawler correctly finds and parses m3u files from the referenced url of a webpage
 def test_ref_urls():
@@ -961,18 +922,181 @@ def test_ref_urls():
     assert 'http://mypanel.tv' in streams
     assert 'http://hdreambox.dyndns.info' in streams
 
+#Visitor method
+#Error checks the initialization of the visitor class, which takes a string as input
+def error_check_init_visitor():
+    for invalid in [[], 0, None, set()]:
+        with pytest.raises(InvalidInputError):
+            Visitor(invalid)
+
+#Visitor method
+#Tests the return of the document_from_url method, which should not be null
+def test_cursor_from_url():
+    visitor = Visitor('test_cursor_from_url')
+    url1 = 'https://www.reddit.com/r/reset'
+    url2 = 'https://www.reddit.com/r/all'
+    url3 = 'https://www.reddit.com/r/bpt'
+    node1 = Node(url1, None)
+    node2 = Node(url2, None)
+    node3 = Node(url3, node1)
+
+    for t in [(url1, node1), (url2, node2), (url3, node3)]:
+        visitor.visit_url(*t)
+
+    for url in [url1, url2, url3]:
+        assert visitor.document_from_url(url) is not None
+    visitor.delete()
+
+#Visitor method
+#Error checks the document_from_url method for the InvalidUrlError when an invalid url is given as input
+def error_check_document_from_url_with_invalid_url():
+    visitor = Visitor('error_check_document_from_url_with_invalid_url')
+
+    for invalid in [[], 0, 'fat', set()]:
+        with pytest.raises(InvalidUrlError):
+            visitor.document_from_url(invalid)
+    visitor.delete()
+
+#Visitor method
+#Error checks the document_from_url method for the MultipleUrlsInDatabaseError, which is raised when multiple cursors are returned
+def error_check_cursor_from_url_with_multiple_matching_url_entries():
+    visitor = Visitor('error_check_cursor_from_url_with_multiple_matching_url_entries')
+    url1 = 'https://www.reddit.com'
+    url2 = 'https://www.reddit.com/r/all'
+    url3 = 'https://www.reddit.com'
+    url4 = 'https://www.reddit.com/r/all'
+    node1 = Node(url1, None)
+    node2 = Node(url2, node1)
+    node3 = Node(url3, node2)
+    node4 = Node(url4, None)
+    for t in [(url1, node1), (url2, node2), (url3, node3), (url4, node4)]:
+        visitor.visit_url(*t, suppress_warnings=True)
+
+    for url in [url1, url2, url3, url4]:
+        with pytest.raises(MultipleUrlsInDatabaseError):
+            visitor.document_from_url(url)
+    visitor.delete()
+
+#Visit method
+#Tests that the visited method returns the correct value
+def test_visited():
+    visitor = Visitor('test_visited')
+
+    url1 = 'https://www.reddit.com'
+    url2 = 'https://www.reddit.com/r/all'
+    url3 = 'https://www.reddit.com'
+    url4 = 'https://www.reddit.com/r/all'
+    node1 = Node(url1, None)
+    node2 = Node(url2, node1)
+    node3 = Node(url3, node2)
+    node4 = Node(url4, None)
+    visited = []
+    unvisited = []
+    for t in [(url1, node1), (url2, node2), (url3, node3), (url4, node4)]:
+        if visitor.visited(t[0]):
+            visited.append(t[0])
+        else:
+            unvisited.append(t[0])
+            visitor.visit_url(*t)
+
+    assert visited == [url3, url4]
+    assert unvisited == [url1, url2]
+    visitor.delete()
+
+def test_visit_url():
+    visitor = Visitor('test_visit_url')
+    url1 = 'https://www.reddit.com/r/reset'
+    url2 = 'https://www.reddit.com/r/all'
+    url3 = 'https://www.reddit.com/r/bpt'
+    node1 = Node(url1, None)
+    node2 = Node(url2, None)
+    node3 = Node(url3, node1)
+
+    for t in [(url1, node1), (url2, node2), (url3, node3)]:
+        visitor.visit_url(*t)
+
+    db = visitor.database()
+
+    for url in [url1, url2, url3]:
+        data = (db.posts.find({'url1': url}))
+        assert data is not None
+    visitor.delete()
+
+def error_check_visit_url_with_invalid_inputs():
+    visitor = Visitor('error_check_visited_with_invalid_inputs')
+    url1 = 'https://www.reddit.com'
+    url2 = 'https://www.reddit.com/r/all'
+    url3 = 'https://www.reddit.com'
+    node1 = Node(url1, None)
+    node2 = Node(url2, node1)
+    node3 = Node(url3, node2)
+
+    for t in [(url1, node1), (url2, node2), (url3, node3)]:
+        for invalid in [[], 0, 'fat', 'www.reddit.com']:
+            with pytest.raises(InvalidUrlError):
+                visitor.visit_url(invalid, t[1])
+            with pytest.raises(InvalidInputError):
+                visitor.visit_url(t[0], invalid)
+    visitor.delete()
+
+def error_check_visit_url_with_url_in_database():
+    visitor = Visitor('error_check_visit_url_with_url_in_database')
+    url1 = 'http://www.reddit.com/r/FortNiteBR'
+    url2 = 'http://www.reddit.com/r/FortNiteBR'
+    url3 = 'http://www.reddit.com/r/fph'
+    url4 = 'http://www.reddit.com/r/fph'
+    node1 = Node(url1, None)
+    node2 = Node(url2, node1)
+    node3 = Node(url3, None)
+    node4 = Node(url4, node3)
+    visitor.visit_url(url1, node1)
+    visitor.visit_url(url3, node3)
+
+    for t in [(url2, node2), (url4, node4)]:
+        with pytest.raises(UrlInDatabaseError):
+            visitor.visit_url(*t)
+    visitor.delete()
+
+def test_node_from_url():
+    visitor = Visitor('node_from_url')
+    url1 = 'https://www.reddit.com'
+    url2 = 'https://www.reddit.com/r/all'
+    url3 = 'https://www.reddit.com/r/gifs'
+    url4 = 'https://www.reddit.com/r/aww'
+    node1 = Node(url1, None)
+    node2 = Node(url2, node1)
+    node3 = Node(url3, node2)
+    node4 = Node(url4, None)
+
+    for t in [(url1, node1), (url2, node2), (url3, node3), (url4, node4)]:
+        visitor.visit_url(*t)
+
+    for t in [(url1, node1), (url2, node2), (url3, node3), (url4, node4)]:
+        node = visitor.node_from_url(t[0])
+        assert node.data() == t[1].data()
+        if node.has_parent():
+            assert node.parent().data() == t[1].parent().data()
+    visitor.delete()
+
+def error_check_node_from_url_with_invalid_url():
+    visitor = Visitor('error_check_node_from_url_with_invalid_url')
+
+    for invalid in [[], 0, 'fat', set()]:
+        with pytest.raises(InvalidUrlError):
+            visitor.node_from_url(invalid)
+    visitor.delete()
 
 def requester_tests():
     return [test_validate, test_host, error_check_host, test_remove_identifier, error_check_remove_identifier,
             test_request, error_check_request, test_get_format, error_check_get_format, test_hash_content,
-            error_check_hash_content, test_deport, error_check_deport, test_prepare, error_check_prepare,
-            test_remove_top, error_check_remove_top, test_subpaths, error_check_subpaths, test_purity,
+            error_check_hash_content,  test_subpaths, error_check_subpaths, test_purity,
             error_check_purity, test_phrases, error_check_phrases]
 
 
 def fixer_tests():
-    return [test_partial, error_check_partial, test_phish, error_check_phish, error_check_expand,
-            test_reduce, error_check_reduce]
+    return [test_reduce, error_check_reduce, test_deport, error_check_deport, test_remove_top, error_check_remove_top,
+            test_prepare, test_prepare_netloc, error_check_prepare, test_partial, error_check_partial, test_phish,
+            error_check_phish, error_check_expand]
 
 
 def node_tests():
@@ -988,16 +1112,22 @@ def crawler_tests():
             test_parse_with_zip, test_parse_text_from_parse, test_parse_with_relatives, test_text_urls, test_ref_urls]
 
 
+def visitor_tests():
+    return [error_check_init_visitor, test_cursor_from_url, error_check_document_from_url_with_invalid_url,
+            error_check_cursor_from_url_with_multiple_matching_url_entries, test_visited, test_visit_url,
+            error_check_visit_url_with_invalid_inputs, error_check_visit_url_with_url_in_database, test_node_from_url]
+
+
 def get_tests():
     return requester_tests() + fixer_tests() + node_tests() + queue_tests() + crawler_tests()
 
 
 def test_runner():
-    for test in get_tests():
+    for test in visitor_tests():
         test()
 
 
 if __name__ == "__main__":
     print('Running tests...')
-    test_parents()
+    test_runner()
     print('All tests passed!')

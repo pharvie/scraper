@@ -1,10 +1,10 @@
-from exceptions import InvalidInputException
+from exceptions import InvalidInputError
 from my_queue import Queue
 
 class Node(object):
     def __init__(self, data, parent):
         if parent is not None and not isinstance(parent, Node):
-            raise InvalidInputException('The parent of a node must either be none or a node itself')
+            raise InvalidInputError('The parent of a node must either be none or a node itself')
         self._data = data
         self._parent = parent
         self._depth = 0

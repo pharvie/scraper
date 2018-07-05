@@ -5,13 +5,13 @@ import hashlib
 import regex
 import requester
 import heapq
-from exceptions import InvalidURLException
+from exceptions import InvalidUrlError
 
 regex = regex.get()
 
 def add_to_path(path, polarity, url, string):
     if not requester.validate(url):
-        raise InvalidURLException('Training data must contain a valid url:' + str(url))
+        raise InvalidUrlError('Training data must contain a valid url:' + str(url))
     if not os.path.exists(path):
         os.makedirs(path)
         fill(path)
@@ -37,7 +37,7 @@ def vocab(root, limit=float('inf')):
     urls = []
     frequency = {}
     heap = []
-    vocab = ['None']
+    vocab = []
     counter = 0
     state = ['train', 'test']
     polarity = ['pos', 'neg']
@@ -76,9 +76,9 @@ def iterator(directory):
     for filename in os.listdir(directory):
         path = os.path.join(directory, filename)
         with open(path, 'r') as f:
-            url = f.readlines()[0]
+            lines = f.readlines()
+            url = lines[0].strip()
             urls.append(url)
-            print(url)
             f.close()
     return urls
 
@@ -96,4 +96,3 @@ def fill(path):
                 os.makedirs(subpath)
 
 
-purge('C:\\Users\\pharvie\\Desktop\\Training\\freshiptv')

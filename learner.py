@@ -1,7 +1,8 @@
+import requester
+import fixer
 import tensorflow as tf
 import os
 import pandas as pd
-import requester
 import re
 import codecs
 from collections import OrderedDict
@@ -11,17 +12,25 @@ import numpy as np
 import gatherer
 from tabulate import tabulate
 
+
 def learn(root):
     tops = ['default']
     vocab = gatherer.vocab(root)
 
     def load_directory_data(directory):
         data = OrderedDict([('url', []), ('top', []), ('url_length', []), ('path_length', []), ('purity', []),
-                            ('queries', []), ('phrases', []), ('last_path_length', []), ('average_subpath_length', [])])
+                            ('queries', []), ('phrases', []), ('last_path_length', []), ('average_subpath_length', []),
+                            ('siblings', []), ('parents', [])])
         for file_path in os.listdir(directory):
             with codecs.open(os.path.join(directory, file_path), "r", encoding='latin-1') as f:
-                url = f.read()
-                domain, top = requester.remove_top(url)
+                lines = f.readlines()
+                url = lines[0].strip()
+                parents = 0
+                siblings = 0
+                if len(lines) > 1:
+                    parents = int(re.search(r'(\d+)', lines[1].strip()).group(1))
+                    siblings = int(re.search(r'(\d+)', lines[2].strip()).group(1))
+                domain, top = fixer.remove_top(url)
                 if top not in tops and not re.search(r'^\d$', top):
                     tops.append(top)
                 subpaths = requester.subpaths(url)
@@ -31,7 +40,7 @@ def learn(root):
                 data['path_length'].append(len(subpaths))
                 data['purity'].append(requester.purity(subpaths))
                 data['queries'].append(requester.queries(url))
-                data['phrases'].append(requester.phrases(url))
+                data['phrases'].append(' '.join(requester.phrases(url)))
                 if subpaths:
                     data['last_path_length'].append(len(subpaths[-1]))
                 else:
@@ -40,6 +49,8 @@ def learn(root):
                 for subpath in subpaths:
                     average += len(subpath)/len(subpaths)
                 data['average_subpath_length'].append(average)
+                data['parents'].append(parents)
+                data['siblings'].append(siblings)
 
         df = pd.DataFrame.from_dict(data)
         print(directory)
@@ -109,6 +120,21 @@ def learn(root):
         source_column=average_subpath_length_numeric_column,
         boundaries=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100])
 
+    parents_numeric_column = tf.feature_column.numeric_column('parents')
+
+    parents_column = tf.feature_column.bucketized_column(
+        source_column=parents_numeric_column,
+        boundaries=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100]
+    )
+
+    siblings_numeric_column = tf.feature_column.numeric_column('siblings')
+
+    siblings_column = tf.feature_column.bucketized_column(
+        source_column=siblings_numeric_column,
+        boundaries=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 120, 140,
+                    160, 180, 200, 220, 240, 260, 280, 300, 340, 380, 420, 440, 500]
+    )
+
     top_feature_column = tf.feature_column.categorical_column_with_vocabulary_list(
         key='top',
         vocabulary_list=tops)
@@ -123,6 +149,8 @@ def learn(root):
                 tf.feature_column.indicator_column(last_path_length_feature_column),
                 tf.feature_column.indicator_column(purity_feature_column),
                 tf.feature_column.indicator_column(average_subpath_length_column),
+                tf.feature_column.indicator_column(parents_column),
+                tf.feature_column.indicator_column(siblings_column),
                 tf.feature_column.indicator_column(top_feature_column),
                 tf.feature_column.indicator_column(vocab_feature_column)]
 
@@ -142,6 +170,7 @@ def learn(root):
 
     print("Training set accuracy: {accuracy}".format(**train_eval_result))
     print("Test set accuracy: {accuracy}".format(**test_eval_result))
+    print("Accuracy baseline: %s" % estimator.evaluate(input_fn=predict_test_input_fn)["accuracy_baseline"])
 
     def serving_input_fn():
         feature_placeholders = {
@@ -151,9 +180,11 @@ def learn(root):
             'path_length': tf.placeholder(tf.float32, [None]),
             'purity': tf.placeholder(tf.float32, [None]),
             'queries': tf.placeholder(tf.float32, [None]),
-            'phrases': tf.placeholder(tf.string, [None]),
             'last_path_length': tf.placeholder(tf.float32, [None]),
-            'average_subpath_length': tf.placeholder(tf.float32, [None])
+            'average_subpath_length': tf.placeholder(tf.float32, [None]),
+            'parents': tf.placeholder(tf.float32, [None]),
+            'siblings': tf.placeholder(tf.float32, [None]),
+            'phrases': tf.placeholder(tf.string, [None])
         }
         features = {
             key: tf.expand_dims(tensor, -1)
@@ -173,8 +204,8 @@ def learn(root):
 
     # Create a confusion matrix on training data.
     with tf.Graph().as_default():
-        cm = tf.confusion_matrix(test_df["polarity"],
-                                 get_predictions(estimator, predict_test_input_fn))
+        cm = tf.confusion_matrix(train_df["polarity"],
+                                 get_predictions(estimator, predict_train_input_fn))
         with tf.Session() as session:
             cm_out = session.run(cm)
 

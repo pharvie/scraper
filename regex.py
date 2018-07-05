@@ -3,7 +3,7 @@ def get():
         'm3u_fmt': r'(mpegurl)|(m3u8?)|(octet-stream)|(plain)',
         'zip_fmt': r'zip',
         'html_fmt': r'html',
-        'identity': r'(www[^\.]*\.)?(.+)',
+        'identity': r'(.+)(www\.)(.+)',
         'port': r'(.+?)(:\d{1,10})(.+)?',
         'top': r'(.+)\.((?:.(?!\.))+)$',
         'short': r'(ift\.tt)|(bit\.(ly)|(bit\.do\/))|(bc\.vc)|(goo\.gl)|(link\.tl)',

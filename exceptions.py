@@ -7,25 +7,37 @@ class BaseError(Exception):
         return repr(self.parameter)
 
 
-class InvalidURLException(BaseError):
+class InvalidUrlError(BaseError):
     pass
 
 
-class InvalidInputException(BaseError):
+class InvalidInputError(BaseError):
     pass
 
 
-class InvalidHostException(BaseError):
+class InvalidHostError(BaseError):
     pass
 
 
-class InvalidRequestException(BaseError):
+class InvalidRequestError(BaseError):
     pass
 
 
-class InvalidNodeException(BaseError):
+class InvalidNodeError(BaseError):
     pass
 
 
-class EmptyQueueException(BaseError):
+class EmptyQueueError(BaseError):
+    pass
+
+class UrlNotInDatabaseError(BaseError):
+    pass
+
+class MultipleUrlsInDatabaseError(BaseError):
+    pass
+
+class UrlInDatabaseError(BaseError):
+    pass
+
+class ServerNotRunningError(BaseError):
     pass

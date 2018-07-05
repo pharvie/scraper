@@ -1,4 +1,4 @@
-from exceptions import EmptyQueueException
+from exceptions import EmptyQueueError
 
 class Queue(object):
     def __init__(self):
@@ -11,7 +11,7 @@ class Queue(object):
 
     def dequeue(self):
         if self.empty():
-            raise EmptyQueueException('Cannot dequeue from empty queue')
+            raise EmptyQueueError('Cannot dequeue from empty queue')
         if self.s2:
             return self.s2.pop()
         while self.s1:
@@ -26,7 +26,7 @@ class Queue(object):
 
     def peek(self):
         if self.empty():
-            raise EmptyQueueException('Cannot peek from empty queue')
+            raise EmptyQueueError('Cannot peek from empty queue')
         if self.s2:
             return self.s2[-1]
         while self.s1:
