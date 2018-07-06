@@ -93,6 +93,8 @@ class Crawler(object):
             splitext = list(filter(lambda x: not re.match(regex['whitespace'], x), original))
             return splitext
 
+
+    #rewrite this method with an iterator
     def parse_text(self, splitext, parent):
         m3us = set()
         counter = 0

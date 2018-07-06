@@ -17,44 +17,48 @@ def learn(root):
     tops = ['default']
     vocab = gatherer.vocab(root)
 
+    def load_text_file(data, f):
+        lines = f.readlines()
+        url = lines[0].strip()
+        parents = 0
+        siblings = 0
+        if len(lines) > 1:
+            parents = int(re.search(r'(\d+)', lines[1].strip()).group(1))
+            siblings = int(re.search(r'(\d+)', lines[2].strip()).group(1))
+        domain, top = fixer.remove_top(url)
+        if top not in tops and not re.search(r'^\d$', top):
+            tops.append(top)
+        subpaths = requester.subpaths(url)
+        data["url"].append(url)
+        data["top"].append(top)
+        data['url_length'].append(len(url))
+        data['path_length'].append(len(subpaths))
+        data['purity'].append(requester.purity(subpaths))
+        data['queries'].append(requester.queries(url))
+        data['phrases'].append(' '.join(requester.phrases(url)))
+        if subpaths:
+            data['last_path_length'].append(len(subpaths[-1]))
+        else:
+            data['last_path_length'].append(0)
+        average = 0
+        for subpath in subpaths:
+            average += len(subpath) / len(subpaths)
+        data['average_subpath_length'].append(average)
+        data['parents'].append(parents)
+        data['siblings'].append(siblings)
+        return data
+
     def load_directory_data(directory):
         data = OrderedDict([('url', []), ('top', []), ('url_length', []), ('path_length', []), ('purity', []),
                             ('queries', []), ('phrases', []), ('last_path_length', []), ('average_subpath_length', []),
                             ('siblings', []), ('parents', [])])
         for file_path in os.listdir(directory):
             with codecs.open(os.path.join(directory, file_path), "r", encoding='latin-1') as f:
-                lines = f.readlines()
-                url = lines[0].strip()
-                parents = 0
-                siblings = 0
-                if len(lines) > 1:
-                    parents = int(re.search(r'(\d+)', lines[1].strip()).group(1))
-                    siblings = int(re.search(r'(\d+)', lines[2].strip()).group(1))
-                domain, top = fixer.remove_top(url)
-                if top not in tops and not re.search(r'^\d$', top):
-                    tops.append(top)
-                subpaths = requester.subpaths(url)
-                data["url"].append(url)
-                data["top"].append(top)
-                data['url_length'].append(len(url))
-                data['path_length'].append(len(subpaths))
-                data['purity'].append(requester.purity(subpaths))
-                data['queries'].append(requester.queries(url))
-                data['phrases'].append(' '.join(requester.phrases(url)))
-                if subpaths:
-                    data['last_path_length'].append(len(subpaths[-1]))
-                else:
-                    data['last_path_length'].append(0)
-                average = 0
-                for subpath in subpaths:
-                    average += len(subpath)/len(subpaths)
-                data['average_subpath_length'].append(average)
-                data['parents'].append(parents)
-                data['siblings'].append(siblings)
+                data = load_text_file(data, f)
 
         df = pd.DataFrame.from_dict(data)
-        print(directory)
-        print(tabulate(df, headers=data.keys()))
+        #print(directory)
+        #print(tabulate(df, headers=data.keys()))
         return df
 
     # Merge positive and negative examples, add a polarity column and shuffle.
@@ -198,9 +202,22 @@ def learn(root):
     )
 
     def get_predictions(est, input_fn):
-        return [x["class_ids"][0] for x in est.predict(input_fn=input_fn)]
+        return [x['class_ids'][0] for x in est.predict(input_fn=input_fn)]
 
     labels = ["negative", "positive"]
+
+    def confused_predictions(input_fn, predict_input_fn):
+        predictions = get_predictions(estimator, predict_input_fn)
+        positives = 0
+        false_positives = 0
+        for i in range(len(input_fn['polarity'])):
+            if input_fn['polarity'][i] != predictions[i]:
+                if input_fn['polarity'][i] == 1:
+                    false_positives += 1
+            if input_fn['polarity'][i] == 1:
+                positives += 1
+        print('Positives', str(positives))
+        print('False negatives', str(false_positives))
 
     # Create a confusion matrix on training data.
     with tf.Graph().as_default():
@@ -219,5 +236,22 @@ def learn(root):
     plt.plot()
     plt.show()
 
+    def show_confused_predictions(est, directory, polarity):
+        for file_path in os.listdir(directory):
+            data = OrderedDict([('url', []), ('top', []), ('url_length', []), ('path_length', []), ('purity', []),
+                                ('queries', []), ('phrases', []), ('last_path_length', []), ('average_subpath_length', []),
+                                ('siblings', []), ('parents', [])])
+            with codecs.open(os.path.join(directory, file_path), "r", encoding='latin-1') as f:
+                data = load_text_file(data, f)
+                df = pd.DataFrame.from_dict(data).sample(frac=1).reset_index(drop=True)
+                df["polarity"] = 1
+                predict_df = tf.estimator.inputs.pandas_input_fn(df, df["polarity"], shuffle=False)
+                prediction = get_predictions(est, predict_df)[0]
+                if prediction == polarity:
+                    print(data['url'], str(prediction))
+
+    show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\test\\pos', 1)
+    show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\train\\pos', 1)
 
 learn('C:\\Users\\pharvie\\Desktop\\Training\\freshiptv')
+
