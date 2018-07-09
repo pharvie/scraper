@@ -10,10 +10,9 @@ class MyThread(threading.Thread):
         self.ts_files = []
 
     def run(self):
-        crawler = Crawler(train=True, limit=6000)
+        crawler = Crawler(train=False, limit=6000)
         crawler.crawl(self.page)
         evaluate_parse(crawler, self.page)
-        crawler.eliminate()
 
 
 def evaluate_parse(crawler, page):
@@ -39,7 +38,7 @@ def create_threads():
     thread7 = MyThread('http://iptvurllist.com')
     thread8 = MyThread('http://freeworldwideiptv.com') #503 status code
     thread9 = MyThread('http://ramalin.com')
-    return[thread1]
+    return[thread6]
     #return [thread1, thread2, thread3, thread4, thread5, thread6, thread7, thread8, thread9]
 
 def run_threads():

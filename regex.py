@@ -17,7 +17,7 @@ def get():
         'zip': r'(\.zip)|(&?type=zip)',
         'raw': r'(pastebin\.com\/raw\/.{8})$',
         'invalid': r'(#)|(javascript:(%\d+)?void\(0\))|(^\/$)|(\.png)|(\.jpeg)',
-        'ext': r'^(#EXT)',
+        'ext': r'^#(EXT)|(MY)',
         'whitespace': r'^\s*$',
         'params': r'(.+?)(\??&.+)',
         'end': r'(.+)\/$',

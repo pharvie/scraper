@@ -1,10 +1,10 @@
-from exceptions import InvalidUrlError, InvalidRequestError, InvalidInputError
+from exceptions import *
 import requester
-import fixer
+import url_mutator as um
 import regex
-from node import Node
 from my_queue import Queue
 import urllib3
+from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from requests.models import Response
 import zipfile
@@ -13,50 +13,43 @@ import io
 import re
 import sys
 from urllib.parse import urlparse
-import gatherer
-import os.path
+from database import Visitor
 from pympler import asizeof
 
 encodings = ['utf-8', 'latin-1', 'windows-1250', 'ascii']
 regex = regex.get()
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(100000)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Crawler(object):
     def __init__(self, test=None, limit=float('inf'), train=False):
-        self.nodes = {}
-        self.visited = set()
         self.hashes = set()
-        self.crawled = set()
         self.streams = {}
         self.counter = 1
-        self.host = None
-        self.important = {}
         self.limit = limit
         self.queue = Queue()
-        self.path = None
         self.train = train
+        self.host = None
+        self.visitor = None
         if test:
             self.host = requester.host(test)
-            self.nodes[test] = Node(test, None)
+            self.visitor = Visitor('test')
 
     def crawl(self, page, recurse=True):
-        if not requester.validate(page):
+        if not requester.validate_url(page):
             raise InvalidUrlError('Cannot crawl page of invalid url: ' + str(page))
         if self.host is None:
             self.host = requester.host(page)
-            self.fix_and_visit(self.host, None, self.host)
+            domain, top = um.remove_top(self.host)
+            self.visitor = Visitor('%s_visited' % domain)
+            self.visitor.visit_url(self.host, None)
             if page != self.host:
-                self.fix_and_visit(page, self.nodes[self.host], self.host)
-            if self.train:
-                domain, top = fixer.remove_top(self.host)
-                self.path = os.path.join('C:\\Users\\pharvie\\Desktop\\Training', domain)
+                raise InvalidInputError('The starting page must be the host of a webpage, the following page is not: %s' % page)
         request = requester.request(page)
-        self.crawled.add(page)
-        print('Crawling %s: %s' % (page, self.counter))
-        print(asizeof.asizeof(self))
-        print(asizeof.asized(self, detail=1).format())
+        print('Crawling %s: %s, total size is currently %s, visitor size is %s, queue size is %s, streams size is %s' %
+              (page, self.counter, asizeof.asizeof(self), asizeof.asizeof(self.visitor), asizeof.asizeof(self.queue),
+               asizeof.asizeof(self.streams)))
         if request:
             self.counter += 1
             try:
@@ -65,9 +58,7 @@ class Crawler(object):
                 print('The following page caused an error in the soup %s' % str(page))
             else:
                 if soup:
-                    splitext = self.check_text_urls(soup)
-                    if splitext:
-                        self.parse_text(splitext, page)
+                    self.check_text_urls(soup, page)
                     self.check_ref_urls(soup, page)
                     while recurse and self.counter < self.limit and not self.queue.empty():
                         self.crawl(self.queue.dequeue())
@@ -77,79 +68,83 @@ class Crawler(object):
             for a in soup.find_all('a', href=True):
                 url = a.get('href')
                 if not re.search(regex['invalid'], url) and url != '':
-                    url = self.fix_and_visit(url, self.nodes[parent], self.host)
+                    url = urljoin(self.host, url)
+                    url = self.fix_url(url)
                     if url:
-                        self.check(url)
-                        if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
-                            self.queue.enqueue(url)
+                        """
+                        print('Checked visited from ref')
+                        self.visitor.visit_url(url, parent)
+                        self.check_for_files(url)
+                        """
+                        try:
+                            self.visitor.visit_url(url, parent)
+                        except UrlPresentInDatabaseError:
+                            pass
+                        else:
+                            self.check_for_files(url)
+                            if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
+                                self.queue.enqueue(url)
 
-    def check_text_urls(self, soup):
+    def check_text_urls(self, soup, parent):
         for br in soup.find_all('br'):
             br.append('\n')
         for div in soup.find_all('div'):
             div.append('\n')
         if soup.text:
-            original = soup.text.splitlines()
-            splitext = list(filter(lambda x: not re.match(regex['whitespace'], x), original))
-            return splitext
+            splitext = soup.text.splitlines()
+            if splitext:
+                self.parse_text(splitext, parent)
 
-
-    #rewrite this method with an iterator
     def parse_text(self, splitext, parent):
-        m3us = set()
-        counter = 0
-        self.important[self.nodes[parent]] = False
-        for x in range(1, len(splitext)):
-            url = splitext[x].strip()
-            if re.search(regex['ext'], splitext[x-1]) and not re.search(regex['ext'], splitext[x]):
-                if not self.important[self.nodes[parent]]:
-                    self.important[self.nodes[parent]] = True
-                if re.search(regex['streams'], url, re.IGNORECASE) or re.search(regex['m3u'], url, re.IGNORECASE):
-                    if re.search(regex['m3u'], url, re.IGNORECASE):
-                        url = self.fix_and_visit(url, self.nodes[parent], parent)
-                    else:
-                        url = self.fix_and_visit(url, self.nodes[parent], parent, visit=True)
-                    if url is None:
-                        continue
-                    prepared_host = fixer.prepare(url, prepare_netloc=True)
-                    if re.search(regex['m3u'], url) and prepared_host not in m3us:
-                        request = requester.request(url)
-                        m3us.add(prepared_host)
-                        if request:
-                            if request.url != url:
-                                self.fix_and_visit(request.url, self.nodes[parent], parent)
-                            self.extract_file(request)
-                    elif re.search(regex['streams'], url) and prepared_host not in self.streams:
-                        if prepared_host not in self.streams:
-                            self.streams[prepared_host] = set()
-                        self.streams[prepared_host].add(self.host)
-                        counter += 1
-                        if counter == 1:
-                            parents = []
-                            for p in self.nodes[parent].parents():
-                                parents.append(p.data())
-                            #print(parents)
-                        print(prepared_host, self.streams[prepared_host])
-            elif requester.validate(url):
-                prepared_host = fixer.prepare(url, prepare_netloc=True)
-                url = self.fix_and_visit(url, self.nodes[parent], self.host)
-                if url and (not requester.internal(url, self.host) and prepared_host not in m3us or requester.internal(url, self.host)):
-                    m3us.add(prepared_host)
-                    self.check(url)
+        splitext = list(filter(lambda x: not re.match(regex['whitespace'], x), splitext))
+        splitext_iter = iter(splitext)
+        internal_m3us = set()
+        if splitext_iter:
+            curr = next(splitext_iter).strip()
+            try:
+                while True:
+                    ext_above = False
+                    while re.search(regex['ext'], curr):
+                        curr = next(splitext_iter).strip()
+                        ext_above = True
+                    if ext_above and not requester.validate_url(curr):
+                        curr = urljoin(parent, curr)
+                    url = self.fix_url(curr)
+                    if url:
+                        url_netloc = um.prepare(url)
+                        if url_netloc not in internal_m3us or requester.internal(url, self.host):
+                            if not ext_above or ext_above and re.search(regex['m3u'], url, re.IGNORECASE) and \
+                                    not re.search(regex['streams'], url, re.IGNORECASE):
+                                try:
+                                    self.visitor.visit_url(url, parent)
+                                except UrlPresentInDatabaseError:
+                                    pass
+                                else:
+                                    self.check_for_files(url)
+                            else:
+                                self.check_for_files(url)
+                            if re.search(regex['m3u'], url) and not requester.internal(url, self.host):
+                                internal_m3us.add(url_netloc)
+                    curr = next(splitext_iter).strip()
+            except StopIteration:
+                pass
 
-    def check(self, url):
-        if not requester.validate(url):
-            raise InvalidUrlError('Cannot check for m3u files of the following url: %s' % str(url))
-        p = urlparse(url)
-        s = p.path + p.query
-        if re.search(regex['m3u'], s) or (re.search(regex['dl'], s) and not re.search(regex['ndl'], s)) or re.search(regex['zip'], s) \
-                or re.search(regex['raw'], s):
+    def check_for_files(self, url):
+        if not requester.validate_url(url):
+            raise InvalidUrlError('Cannot check_for_files for m3u files of the following url: %s' % str(url))
+        parsed = urlparse(url)
+        url_search = parsed.path + parsed.query
+        if re.search(regex['m3u'], url_search) or (re.search(regex['dl'], url_search) and not re.search(regex['ndl'], url_search)) \
+                or re.search(regex['zip'], url_search) or re.search(regex['raw'], url_search):
             request = requester.request(url)
             if request:
-                self.fix_and_visit(request.url, self.nodes[url].parent(), self.host)
                 self.extract_file(request)
-            else:
-                self.important[self.nodes[url]] = False
+        elif re.search(regex['streams'], url_search):
+            url_netloc = um.prepare(url)
+            if url_netloc not in self.streams:
+                self.streams[url_netloc] = set()
+                self.streams[url_netloc].add(self.host)
+                print(url_netloc, self.streams[url_netloc])
 
     def extract_file(self, request):
         file_type = requester.get_format(request)
@@ -173,9 +168,9 @@ class Crawler(object):
             for info in z.infolist():
                 if re.search(regex['m3u'], info.filename):
                     f = z.read(info.filename)
-                    hashnum = requester.hash_content(f)
-                    if hashnum not in self.hashes:
-                        self.hashes.add(hashnum)
+                    hash_num = requester.hash_content(f)
+                    if hash_num not in self.hashes:
+                        self.hashes.add(hash_num)
                         for e in encodings:
                             try:
                                 splitext = f.decode(e).splitlines()
@@ -186,44 +181,16 @@ class Crawler(object):
                                     self.parse_text(splitext, parent=request.url)
                                     break
 
-    def fix_and_visit(self, url, parent, host, visit=True):
-        if url is None or not isinstance(url, str):
-            raise InvalidInputError('Cannot visit invalid url: %s' % str(url))
-        if url in self.nodes:
+    def fix_url(self, url):
+        if not requester.validate_url(url):
             return None
-        fixed_url = fixer.phish(fixer.partial(url, host))
-        if not requester.validate(fixed_url):
-            return None
-        if not requester.internal(fixed_url, host):
-            fixed_url = fixer.expand(fixed_url)
-        if url != fixed_url:
-            if fixed_url in self.nodes:
-                return None
-        if visit:
-            self.nodes[fixed_url] = Node(fixed_url, parent)
+        fixed_url = um.phish(url)
+        if not requester.internal(fixed_url, self.host):
+            fixed_url = um.expand(fixed_url)
         return fixed_url
 
     def get_streams(self):
         return self.streams
 
-    def eliminate(self):
-        print('In eliminate')
-        for node in self.important:
-            if self.important[node]:
-                for parent in node.parents():
-                    self.important[parent] = True
-        if self.train:
-            for node in self.important:
-                if not self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
-                    print('The following url is to be eliminated', node.data())
-                    string = node.data() + '\n' + 'Parents: ' + str(node.depth())
-                    gatherer.add_to_path(self.path, 'neg', node.data(), string)
-
-            for node in self.important:
-                if self.important[node] and node.data() in self.crawled and requester.internal(node.data(), self.host):
-                    print('The following url is to be spared', node.data())
-                    string = node.data() + '\n' + 'Parents: ' + str(node.depth())
-                    gatherer.add_to_path(self.path, 'pos', node.data(), string)
-
-
-
+    def get_visitor(self):
+        return self.visitor

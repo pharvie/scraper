@@ -1,5 +1,5 @@
 import requester
-import fixer
+import url_mutator as um
 import tensorflow as tf
 import os
 import pandas as pd
@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import gatherer
-from tabulate import tabulate
 
 
 def learn(root):
@@ -25,7 +24,7 @@ def learn(root):
         if len(lines) > 1:
             parents = int(re.search(r'(\d+)', lines[1].strip()).group(1))
             siblings = int(re.search(r'(\d+)', lines[2].strip()).group(1))
-        domain, top = fixer.remove_top(url)
+        domain, top = um.remove_top(url)
         if top not in tops and not re.search(r'^\d$', top):
             tops.append(top)
         subpaths = requester.subpaths(url)
@@ -250,8 +249,8 @@ def learn(root):
                 if prediction == polarity:
                     print(data['url'], str(prediction))
 
-    show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\test\\pos', 1)
-    show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\train\\pos', 1)
+    #show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\test\\pos', 1)
+    #show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\train\\pos', 1)
 
-learn('C:\\Users\\pharvie\\Desktop\\Training\\freshiptv')
+learn('C:\\Users\\pharvie\\Desktop\\Training\\Bit')
 

@@ -1,5 +1,5 @@
 import validators
-from exceptions import InvalidUrlError, InvalidRequestError, InvalidInputError
+from exceptions import *
 from urllib.parse import urlparse
 import requests
 from requests.models import Response
@@ -24,7 +24,7 @@ def play_stream(url):
 """
 
 def metacharacters(url):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot find metacharacters of invalid url')
     meta = set()
     for subpath in subpaths(url):
@@ -33,7 +33,7 @@ def metacharacters(url):
     return meta
 
 def phrases(url):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot find words of invalid url')
     path = urlparse(url).path + urlparse(url).query
     path = path.replace('%20', ' ')
@@ -42,13 +42,12 @@ def phrases(url):
     return phrases
 
 def queries(url):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot find params of invalid url')
     parsed = urlparse(url)
     if parsed.query == '':
         return 0
     return 1
-
 
 def purity(subpaths):
     if subpaths is None or not isinstance(subpaths, list):
@@ -62,9 +61,8 @@ def purity(subpaths):
             pure += 1
     return (pure/total) * 100
 
-
 def subpaths(url):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot find subpaths of invalid url: ' + str(url))
     path = urlparse(url).path
     if re.search(r'\/$', path):
@@ -79,8 +77,6 @@ def subpaths(url):
         return []
     subpaths = path.split('/')
     return subpaths
-
-
 
 def hash_content(content):
     if content is None or not isinstance(content, bytes):
@@ -108,9 +104,8 @@ def get_format(r):
         if re.search(regex['html_fmt'], f, re.IGNORECASE):
             return 'html'
 
-
 def request(url):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot make a request to an invalid url: ' + str(url))
     session = requests.Session()
     retry = Retry(connect=3, backoff_factor=1)
@@ -129,11 +124,10 @@ def request(url):
         if r.ok or re.search(regex['streams'], r.url, re.IGNORECASE):
             return r
 
-
 def internal(url, host):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot define internal status of invalid url: ' + str(url))
-    if not validate(host):
+    if not validate_url(host):
         raise InvalidUrlError('Cannot define internal status with invalid base: ' + str(host))
     url = remove_identifier(url)
     host = remove_identifier(host)
@@ -141,9 +135,8 @@ def internal(url, host):
     host_netloc = urlparse(host).netloc
     return url_netloc == host_netloc
 
-
 def remove_identifier(url):
-    if url is None or not validate(url):
+    if url is None or not validate_url(url):
         raise InvalidUrlError('Cannot remove the identifier of an invalid url: %s' % url)
     search = re.search(regex['identity'], url)
     if search:
@@ -151,14 +144,13 @@ def remove_identifier(url):
     return url
 
 def host(url):
-    if not validate(url):
+    if not validate_url(url):
         raise InvalidUrlError('Cannot find host of invalid url: ' + str(url))
     parsed = urlparse(url)
     h = parsed.scheme + '://' + parsed.netloc
     return h
 
-
-def validate(url):
+def validate_url(url):
     if url is not None and isinstance(url, str) and validators.url(url):
         return True
     return False

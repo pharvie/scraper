@@ -1,4 +1,4 @@
-from exceptions import InvalidUrlError, InvalidHostError, InvalidInputError
+from exceptions import *
 import requester
 from urllib.parse import urljoin
 import re
@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 regex = regex.get()
 
 def expand(url):
-    if not requester.validate(url):
+    if not requester.validate_url(url):
         raise InvalidUrlError('Cannot fix shortness of invalid url: ' + str(url))
     if re.search(regex['short'], url):
         request = requester.request(url)
@@ -29,23 +29,27 @@ def phish(url):
 def partial(url, host):
     if url is None or not isinstance(url, str):
         raise InvalidInputError('Cannot fix partiality of invalid url: ' + str(url))
-    if not requester.validate(host):
+    if not requester.validate_url(host):
         raise InvalidHostError('Cannot fix partiality with invalid host: ' + str(url))
     return urljoin(host, url)
 
-def prepare(url, prepare_netloc=False):
-    if not requester.validate(url):
+def prepare(url):
+    if not requester.validate_url(url):
         raise InvalidUrlError('Cannot prepare invalid url: ' + str(url))
-    url = requester.remove_identifier(url)
-    if prepare_netloc:
-        url = deport(url)
-        parsed = urlparse(url)
-        url = parsed.scheme + '://' + parsed.netloc
-    url = reduce(url)
-    return url
+    url = reduce(deport(requester.remove_identifier(url)))
+    parsed = urlparse(url)
+    return parsed.scheme + '://' + parsed.netloc
+
+def remove_schema(url):
+    if not requester.validate_url(url):
+        raise InvalidUrlError('Cannot remove schema of invalid url: ' + str(url))
+    parsed = urlparse(url)
+    if parsed.query:
+        return parsed.netloc + parsed.path + '?' + parsed.query
+    return parsed.netloc + parsed.path
 
 def remove_top(url):
-    if not requester.validate(url):
+    if not requester.validate_url(url):
         raise InvalidUrlError('Cannot remove top of invalid url: ' + str(url))
     url = deport(requester.remove_identifier(url))
     netloc = urlparse(url).netloc
@@ -58,7 +62,7 @@ def remove_top(url):
 
 
 def deport(url):
-    if not requester.validate(url):
+    if not requester.validate_url(url):
         raise InvalidUrlError('Cannot remove port of invalid url: ' + str(url))
     search = re.search(regex['port'], url)
     if search:
@@ -69,7 +73,7 @@ def deport(url):
 
 
 def reduce(url):
-    if not requester.validate(url):
+    if not requester.validate_url(url):
         raise InvalidUrlError('Cannot reduce invalid url: ' + str(url))
     s = re.search(regex['end'], url)
     if s:

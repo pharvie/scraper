@@ -10,7 +10,7 @@ from exceptions import InvalidUrlError
 regex = regex.get()
 
 def add_to_path(path, polarity, url, string):
-    if not requester.validate(url):
+    if not requester.validate_url(url):
         raise InvalidUrlError('Training data must contain a valid url:' + str(url))
     if not os.path.exists(path):
         os.makedirs(path)

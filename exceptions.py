@@ -36,7 +36,10 @@ class UrlNotInDatabaseError(BaseError):
 class MultipleUrlsInDatabaseError(BaseError):
     pass
 
-class UrlInDatabaseError(BaseError):
+class UrlPresentInDatabaseError(BaseError):
+    pass
+
+class HostInLinkedByError(BaseError):
     pass
 
 class ServerNotRunningError(BaseError):
