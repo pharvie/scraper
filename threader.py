@@ -1,6 +1,5 @@
 import threading
 from crawler import Crawler
-import heapq
 
 
 class MyThread(threading.Thread):
@@ -10,22 +9,7 @@ class MyThread(threading.Thread):
         self.ts_files = []
 
     def run(self):
-        crawler = Crawler(train=False, limit=6000)
-        crawler.crawl(self.page)
-        evaluate_parse(crawler, self.page)
-
-
-def evaluate_parse(crawler, page):
-    print('FINISHED CRAWLING ' + page)
-    ts = crawler.get_streams()
-    heap = []
-    if ts:
-        for key in ts:
-            heapq.heappush(heap, (-len(ts[key]), key))
-    while heap:
-        entry = heapq.heappop(heap)
-        print(entry[1], ':', ts[entry[1]])
-
+        Crawler(host=self.page, limit=12000)
 
 def create_threads():
     print('Threading...')
@@ -38,7 +22,9 @@ def create_threads():
     thread7 = MyThread('http://iptvurllist.com')
     thread8 = MyThread('http://freeworldwideiptv.com') #503 status code
     thread9 = MyThread('http://ramalin.com')
-    return[thread6]
+    thread10 = MyThread('http://i-ptv.blogspot.com')
+    thread11 = MyThread('http://www.iptvsrc.ml')
+    return[thread1]
     #return [thread1, thread2, thread3, thread4, thread5, thread6, thread7, thread8, thread9]
 
 def run_threads():

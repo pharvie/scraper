@@ -44,3 +44,6 @@ class HostInLinkedByError(BaseError):
 
 class ServerNotRunningError(BaseError):
     pass
+
+class StreamTimedOutError(BaseError):
+    pass

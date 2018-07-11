@@ -32,7 +32,7 @@ def learn(root):
         data["top"].append(top)
         data['url_length'].append(len(url))
         data['path_length'].append(len(subpaths))
-        data['purity'].append(requester.purity(subpaths))
+        data['purity'].append(requester.purity(url))
         data['queries'].append(requester.queries(url))
         data['phrases'].append(' '.join(requester.phrases(url)))
         if subpaths:
@@ -205,19 +205,6 @@ def learn(root):
 
     labels = ["negative", "positive"]
 
-    def confused_predictions(input_fn, predict_input_fn):
-        predictions = get_predictions(estimator, predict_input_fn)
-        positives = 0
-        false_positives = 0
-        for i in range(len(input_fn['polarity'])):
-            if input_fn['polarity'][i] != predictions[i]:
-                if input_fn['polarity'][i] == 1:
-                    false_positives += 1
-            if input_fn['polarity'][i] == 1:
-                positives += 1
-        print('Positives', str(positives))
-        print('False negatives', str(false_positives))
-
     # Create a confusion matrix on training data.
     with tf.Graph().as_default():
         cm = tf.confusion_matrix(train_df["polarity"],
@@ -235,22 +222,6 @@ def learn(root):
     plt.plot()
     plt.show()
 
-    def show_confused_predictions(est, directory, polarity):
-        for file_path in os.listdir(directory):
-            data = OrderedDict([('url', []), ('top', []), ('url_length', []), ('path_length', []), ('purity', []),
-                                ('queries', []), ('phrases', []), ('last_path_length', []), ('average_subpath_length', []),
-                                ('siblings', []), ('parents', [])])
-            with codecs.open(os.path.join(directory, file_path), "r", encoding='latin-1') as f:
-                data = load_text_file(data, f)
-                df = pd.DataFrame.from_dict(data).sample(frac=1).reset_index(drop=True)
-                df["polarity"] = 1
-                predict_df = tf.estimator.inputs.pandas_input_fn(df, df["polarity"], shuffle=False)
-                prediction = get_predictions(est, predict_df)[0]
-                if prediction == polarity:
-                    print(data['url'], str(prediction))
-
-    #show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\test\\pos', 1)
-    #show_confused_predictions(estimator, 'C:\\Users\\pharvie\\Desktop\\Training\\freshiptv\\train\\pos', 1)
 
 learn('C:\\Users\\pharvie\\Desktop\\Training\\Bit')
 

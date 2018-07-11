@@ -1,6 +1,4 @@
-from exceptions import *
-import requester
-import url_mutator as um
+from database import *
 import regex
 from my_queue import Queue
 import urllib3
@@ -11,46 +9,45 @@ import zipfile
 from zipfile import BadZipFile
 import io
 import re
-import sys
 from urllib.parse import urlparse
-from database import Visitor
 from pympler import asizeof
+import datetime
 
 encodings = ['utf-8', 'latin-1', 'windows-1250', 'ascii']
 regex = regex.get()
-sys.setrecursionlimit(100000)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Crawler(object):
-    def __init__(self, test=None, limit=float('inf'), train=False):
+    def __init__(self, host=None, test=None, limit=float('inf'), train=False):
         self.hashes = set()
-        self.streams = {}
         self.counter = 1
         self.limit = limit
         self.queue = Queue()
         self.train = train
         self.host = None
-        self.visitor = None
+        self.visited = {}
+        now = datetime.datetime.now()
+        self.time = '%d-%d-%d:%d' % (now.year, now.month, now.day, 0 if now.hour < 12 else 12)
+        self.streamer = Streamer('%s_streams' % self.time )
         if test:
-            self.host = requester.host(test)
-            self.visitor = Visitor('test')
+            self.host = um.prepare(test)
+            self.visited[test] = None
+            self.streamer = Streamer('test')
+        if host:
+            self.host = um.prepare(host)
+            self.queue.enqueue(self.host)
+            self.visited[self.host] = None
+            while self.counter < self.limit and not self.queue.empty():
+                self.crawl(self.queue.dequeue())
 
-    def crawl(self, page, recurse=True):
+    def crawl(self, page):
         if not requester.validate_url(page):
             raise InvalidUrlError('Cannot crawl page of invalid url: ' + str(page))
-        if self.host is None:
-            self.host = requester.host(page)
-            domain, top = um.remove_top(self.host)
-            self.visitor = Visitor('%s_visited' % domain)
-            self.visitor.visit_url(self.host, None)
-            if page != self.host:
-                raise InvalidInputError('The starting page must be the host of a webpage, the following page is not: %s' % page)
-        request = requester.request(page)
-        print('Crawling %s: %s, total size is currently %s, visitor size is %s, queue size is %s, streams size is %s' %
-              (page, self.counter, asizeof.asizeof(self), asizeof.asizeof(self.visitor), asizeof.asizeof(self.queue),
-               asizeof.asizeof(self.streams)))
+        request = requester.make_request(page)
         if request:
+            print('Crawling %s: %s, total size is currently %s, the queue has %s items and is %s bytes large, visited size is %s' %
+                  (page, self.counter, asizeof.asizeof(self), self.queue.size(), asizeof.asizeof(self.queue), asizeof.asizeof(self.visited)))
             self.counter += 1
             try:
                 soup = BeautifulSoup(request.text, 'html.parser')
@@ -60,30 +57,19 @@ class Crawler(object):
                 if soup:
                     self.check_text_urls(soup, page)
                     self.check_ref_urls(soup, page)
-                    while recurse and self.counter < self.limit and not self.queue.empty():
-                        self.crawl(self.queue.dequeue())
 
     def check_ref_urls(self, soup, parent):
-        if soup:
-            for a in soup.find_all('a', href=True):
-                url = a.get('href')
-                if not re.search(regex['invalid'], url) and url != '':
-                    url = urljoin(self.host, url)
-                    url = self.fix_url(url)
-                    if url:
-                        """
-                        print('Checked visited from ref')
-                        self.visitor.visit_url(url, parent)
+        for a in soup.find_all('a', href=True):
+            url = a.get('href')
+            if not re.search(regex['invalid'], url) and url != '':
+                url = urljoin(self.host, url)
+                url = self.fix_url(url)
+                if url:
+                    if url not in self.visited:
+                        self.visited[url] = parent
                         self.check_for_files(url)
-                        """
-                        try:
-                            self.visitor.visit_url(url, parent)
-                        except UrlPresentInDatabaseError:
-                            pass
-                        else:
-                            self.check_for_files(url)
-                            if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
-                                self.queue.enqueue(url)
+                        if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
+                            self.queue.enqueue(url)
 
     def check_text_urls(self, soup, parent):
         for br in soup.find_all('br'):
@@ -111,20 +97,16 @@ class Crawler(object):
                         curr = urljoin(parent, curr)
                     url = self.fix_url(curr)
                     if url:
-                        url_netloc = um.prepare(url)
-                        if url_netloc not in internal_m3us or requester.internal(url, self.host):
-                            if not ext_above or ext_above and re.search(regex['m3u'], url, re.IGNORECASE) and \
-                                    not re.search(regex['streams'], url, re.IGNORECASE):
-                                try:
-                                    self.visitor.visit_url(url, parent)
-                                except UrlPresentInDatabaseError:
-                                    pass
-                                else:
+                        netloc = um.prepare(url)
+                        if netloc not in internal_m3us or requester.internal(url, self.host):
+                            if not ext_above or ext_above and re.search(regex['m3u'], url, re.IGNORECASE):
+                                if url not in self.visited:
+                                    self.visited[url] = parent
                                     self.check_for_files(url)
-                            else:
-                                self.check_for_files(url)
+                            elif ext_above:
+                                self.streamer.add_to_stream(url, self.host)
                             if re.search(regex['m3u'], url) and not requester.internal(url, self.host):
-                                internal_m3us.add(url_netloc)
+                                internal_m3us.add(netloc)
                     curr = next(splitext_iter).strip()
             except StopIteration:
                 pass
@@ -136,15 +118,11 @@ class Crawler(object):
         url_search = parsed.path + parsed.query
         if re.search(regex['m3u'], url_search) or (re.search(regex['dl'], url_search) and not re.search(regex['ndl'], url_search)) \
                 or re.search(regex['zip'], url_search) or re.search(regex['raw'], url_search):
-            request = requester.request(url)
+            request = requester.make_request(url)
             if request:
+                if request.url != url:
+                    self.visited[request.url] = self.visited[url]
                 self.extract_file(request)
-        elif re.search(regex['streams'], url_search):
-            url_netloc = um.prepare(url)
-            if url_netloc not in self.streams:
-                self.streams[url_netloc] = set()
-                self.streams[url_netloc].add(self.host)
-                print(url_netloc, self.streams[url_netloc])
 
     def extract_file(self, request):
         file_type = requester.get_format(request)
@@ -155,11 +133,11 @@ class Crawler(object):
         elif file_type == 'zip':
             self.unzip(request)
         elif file_type == 'html':
-            self.crawl(request.url, recurse=False)
+            self.crawl(request.url)
 
     def unzip(self, request):
         if request is None or not isinstance(request, Response):
-            raise InvalidRequestError('Cannot unzip invalid request')
+            raise InvalidRequestError('Cannot unzip invalid make_request')
         try:
             z = zipfile.ZipFile(io.BytesIO(request.content))
         except BadZipFile:
@@ -184,13 +162,13 @@ class Crawler(object):
     def fix_url(self, url):
         if not requester.validate_url(url):
             return None
-        fixed_url = um.phish(url)
+        fixed_url = (um.phish(url))
         if not requester.internal(fixed_url, self.host):
             fixed_url = um.expand(fixed_url)
+        if fixed_url in self.visited:
+            return None
         return fixed_url
 
-    def get_streams(self):
-        return self.streams
+    def get_streamer(self):
+        return self.streamer
 
-    def get_visitor(self):
-        return self.visitor

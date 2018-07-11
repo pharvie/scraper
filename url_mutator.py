@@ -7,13 +7,20 @@ from urllib.parse import urlparse
 
 regex = regex.get()
 
+def reduce_queries(url):
+    for expression in ['max-results', 'by-date', 'start']:
+        s = re.search(regex[expression], url)
+        if s:
+            url = url.replace(s.group(1), '')
+    return url
+
 def expand(url):
     if not requester.validate_url(url):
         raise InvalidUrlError('Cannot fix shortness of invalid url: ' + str(url))
     if re.search(regex['short'], url):
-        request = requester.request(url)
+        request = requester.make_request(url)
         if request is not None:
-            #print('Expanded', url, 'to', request.url)
+            #print('Expanded', url, 'to', make_request.url)
             url = request.url
     return url
 
