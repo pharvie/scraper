@@ -32,12 +32,15 @@ Raises:
 def evaluate_stream(url):
     if not validate_url(url):
         raise InvalidUrlError('Cannot evaluate stream of invalid url: %s' % url)
-    timeout = 5
+    timeout = 5 #increasing the timeout will lead to more time being spent on checking potentially deprecated streams, leading
+    # to a longer total runtime, however, it will also lead to a greater accuracy as there are some outlier links that do work
+    # but simply take a while to load. I recommend keeping it around 5
     try:
         with eventlet.Timeout(timeout): #when requesting to a stream the request is unable to timeout, eventlet is used to spawn a
-            # concurrent thread to whatever is in the with statement that runs for the specified (in this case, whatever the value
-            # of timeout is). When the timer runs out, both threads terminate and an eventlet.timeout.Timeout error is raised. By wrapping
-            # the with statement in a with loop and catching the Timeout error, a timeout for the request is effectively created.
+            # concurrent thread to whatever is in the with statement. The eventlet threads runs for a specified  amount of time
+            # (in this case, whatever the value of timeout is). When the timer runs out, both threads terminate and an
+            # eventlet.timeout.Timeout error is raised. By wrapping the with statement in a with loop and catching the Timeout error,
+            # a timeout for the request is effectively created.
             try:
                 r = requests.get(url, stream=True) # request to a stream
             except (ConnectionError, TooManyRedirects, ChunkedEncodingError): #non-timeout errors
@@ -299,5 +302,3 @@ def validate_url(url):
     if url is not None and isinstance(url, str) and validators.url(url):
         return True
     return False
-
-

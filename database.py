@@ -63,7 +63,7 @@ class Visitor(object):
             raise InvalidUrlError('Url input to visit_url must be a url, the following input is not a url: %s' % url)
         if parent is not None and not requester.validate_url(parent):
             raise InvalidUrlError('Parent input must be none or a url, the following input is neither: %s' % (str(parent)))
-        if document_from_netloc(self._db, url) is not None and not suppress_warnings:  # checks if the url is already in the database
+        if document_from_url(self._db, url) is not None and not suppress_warnings:  # checks if the url is already in the database
             raise UrlPresentInDatabaseError('The following url, %s has already been inserted into the %s database. '
                                             'Urls should only be inserted into visited databases once' % (url, self._name))
         data = {
@@ -75,7 +75,7 @@ class Visitor(object):
 
     """
     Method: modify_importance_from_url
-    Purpose: mututes the value of the importance Boolean in the database
+    Purpose: mutates the value of the importance Boolean in the database
     Inputs:
         url: a url, the url whose importance is being modified
     Returns:
@@ -105,7 +105,7 @@ class Visitor(object):
     def parent_of_url(self, url):
         if not requester.validate_url(url):
             raise InvalidUrlError('Url input to visited must be a url, the following input is not a url: %s' % str(url))
-        data = document_from_netloc(self._db, url)
+        data = document_from_url(self._db, url)
         if not data:
             raise UrlNotInDatabaseError('The url, %s , is not in the database, %s' % (str(url), str(self._name)))
         return data['parent']
@@ -116,6 +116,11 @@ class Visitor(object):
     Returns: 
         the database created when the visitor is instantiated
     """
+
+    def visited(self, url):
+        if not requester.validate_url(url):
+            raise InvalidUrlError('Url input to visited must be a url, the following input is not a url: %s' % url)
+        return document_from_url(self._db, url) is not None
 
     def database(self):
         return self._db
@@ -159,13 +164,13 @@ class Streamer(object):
         self.ip_addresses = {} # keeps track of IP address of network locations to prevent redundant requests
         self.connection_attempts = {} # keeps tracks of the connection attempts a given network location has made to check for
         # stream validity
-        self.fibs = fib_to(10) # a list of fibonacci numbers, increase the input to this function and the algorithm will make
+        self.fibs = fib_to(12) # a list of fibonacci numbers, increase the input to this function and the algorithm will make
         # more attempts to check the validity of a given stream, decrease the input and the algorithm will make less attempts
         # to check the validity of a given stream. Note that it will check the inputted number minus one streams, so if the input is
         # fib_to(20), 19 streams of a given netloc would be checked before declaring it invalid
 
     """
-    Method: add_stream
+    Method: add_to_stream
     Purpose: Creates an entry in the database and adds the network location, IP address, and an array of sites that linked to a stream 
     to the entry. When more streams are found on different sites with the same network location, the site is added to the array.
     For example, if the stream http://195.181.173.249/play/movie.ts was found on http://iptvurrlist.com, then the following entry 
@@ -206,12 +211,12 @@ class Streamer(object):
                     ip_address = None #set the ip_address to None
                     print('%s is invalid due to broken IP address' % url)
                     self.broken_stream_links.add(netloc) #add it = broken_stream_links
-                    doc = document_from_netloc(self._db, netloc)
+                    doc = document_from_url(self._db, netloc)
                     if doc:
                         if host not in doc['Linked by']:
                             self.update_linked_by(netloc, host, doc)
                     else:
-                        self.add_to_document(netloc, ip_address, host, False) #add it to the database as a non-working stream
+                        self.add_to_document_by_netloc(netloc, ip_address, host, False) #add it to the database as a non-working stream
                     self.connection_attempts[netloc] = float('inf') #set the connection attempts to infinity to prevent redundant checking
                 else:
                     self.ip_addresses[netloc] = ip_address #store the IP address at the network location
@@ -222,7 +227,7 @@ class Streamer(object):
                     #note that I use fibonacci numbers to 'randomize' where the algorithm checks in a given m3u file, as well as prevent
                     #an absurdly high amount of requests to the database. A simple integer count could also suffice, but the checking
                     #would note be spread out across the document
-                    doc = document_from_netloc(self._db, netloc) #fetch the document at the network location
+                    doc = document_from_url(self._db, netloc) #fetch the document at the network location
                     if doc: #if the network location exists in the database
                         if host not in doc['Linked by']:
                             self.update_linked_by(netloc, host, doc)  # append it to the array of links that point to the netloc
@@ -233,7 +238,7 @@ class Streamer(object):
                             try:
                                 evaluation = requester.evaluate_stream(url)
                             except StreamTimedOutError: #except the StreamTimedError
-                                print('%s is invalid due to a timeout error' % url)
+                                #print('%s is invalid due to a timeout error' % url)
                                 self.broken_stream_links.add(netloc) # add the netloc to the database as a broken stream
                                 # as retrying streams that timeout will be extremely costly
 
@@ -246,24 +251,24 @@ class Streamer(object):
                         try:
                             evaluation = requester.evaluate_stream(url)
                         except StreamTimedOutError:
-                            print('%s is invalid due to a timeout error' % url)
-                            self.add_to_document(netloc, ip_address, host, False) # add the netloc to the database as a broken stream
+                            #print('%s is invalid due to a timeout error' % url)
+                            self.add_to_document_by_netloc(netloc, ip_address, host, False) # add the netloc to the database as a broken stream
                             # as retrying streams that timeout will be extremely costly
                             self.broken_stream_links.add(netloc)
                         else:
                             if evaluation: #if it's a working stream
                                 print('%s is a valid stream' % url)
-                                self.add_to_document(netloc, ip_address, host, True) #add the netloc to the database as a working stream
+                                self.add_to_document_by_netloc(netloc, ip_address, host, True) #add the netloc to the database as a working stream
                                 self.working_stream_links.add(netloc) #add the netloc to working_stream_links
                             else:
-                                print('%s might be an invalid stream' % url)
-                                self.add_to_document(netloc, ip_address, host, None) #add the netloc to the database with an unknown
+                                #print('%s might be an invalid stream' % url)
+                                self.add_to_document_by_netloc(netloc, ip_address, host, None) #add the netloc to the database with an unknown
                                 #stream status, as the network location has only been checked once
                 self.connection_attempts[netloc] += 1 #increment the number of connection attempts made
             elif self.connection_attempts[netloc] != float('inf'): #if the connection attempts have exceeded the max value in fibs then the
                 # stream is invalid, don't check for streams that have been set to infinity
-                print('%s is an invalid stream' % url)
-                self.update_working_link(netloc, False, document_from_netloc(self._db, netloc)) #update the working link status of the
+                #print('%s is an invalid stream' % url)
+                self.update_working_link(netloc, False, document_from_url(self._db, netloc)) #update the working link status of the
                 #netloc to False
                 self.broken_stream_links.add(netloc) #add the netloc to broken_stream_links
 
@@ -317,7 +322,7 @@ class Streamer(object):
         self._db.posts.update({'Network location': netloc}, {'$set': {'Working link': working_link}})
 
     """
-    Method: add_to_document
+    Method: add_to_document_by_netloc
     Purpose: creates a dictionary and adds it as a document to the database
     Inputs:
         netloc: network location to be added to the database
@@ -334,15 +339,14 @@ class Streamer(object):
         InvalidInputError: if the ip_address is not a valid IP address
     """
 
-    def add_to_document(self, netloc, ip_address, host, working_link):
-        print('Adding %s to database' % netloc)
+    def add_to_document_by_netloc(self, netloc, ip_address, host, working_link):
         if not requester.validate_url(netloc):
             raise InvalidUrlError('Cannot update document with an invalid url: %s' % netloc)
         if not requester.validate_url(host):
             raise InvalidUrlError('Cannot update document with an invalid host: %s' % host)
         if ip_address is not None and not re.search(regex['ip'], ip_address):
             raise InvalidInputError('Cannot updated document with an invalid IP address: %s' % ip_address)
-        doc = document_from_netloc(self._db, netloc) #sometimes when threads are running concurrently, this additional check is needed
+        doc = document_from_url(self._db, netloc) #sometimes when threads are running concurrently, this additional check is needed
         if not doc:
             data = {
                 'Network location': netloc,
@@ -366,7 +370,7 @@ class Streamer(object):
 
 
 """
-Method: document_from_netloc
+Method: document_from_url
 Purpose: Retrieves the cursor object (a pymongo object used to traverse mongodb databases) corresponding to the inputted url
 Inputs:
     database: the database used
@@ -380,12 +384,12 @@ Raises:
     the database
 """
 
-def document_from_netloc(database, netloc):
-    if not requester.validate_url(netloc):
-        raise InvalidUrlError('Url input to document_from_netloc must be a url, the following input is not a url: %s' % netloc)
-    cursors = database.posts.find({'Network location': netloc})  # retrieves all cursors that contain the inputted url
+def document_from_url(database, url):
+    if not requester.validate_url(url):
+        raise InvalidUrlError('Url input to document_from_url must be a url, the following input is not a url: %s' % url)
+    cursors = database.posts.find({'Network location': url})  # retrieves all cursors that contain the inputted url
     if cursors.count() > 1:  # count counts the number of cursor, if there are multiple cursors an error is raised
-        raise MultipleUrlsInDatabaseError('There are multiple entries in the %s with the same url %s' % (database.name, netloc))
+        raise MultipleUrlsInDatabaseError('There are multiple entries in the %s with the same url %s' % (database.name, url))
     if cursors.count() == 1:
         return cursors[0]  # returns the cursor corresponding to the url
     return None  # returns None if no cursor is found
@@ -424,3 +428,4 @@ def fib_to(n):
     for i in range(2, n + 1):
         fibs.append(fibs[-1] + fibs[-2])
     return fibs
+

@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import database
 from database import Visitor, Streamer
 from pymongo import MongoClient
+import socket
 
 def test_validate():
     url1 = 'https://www.reddit.com'
@@ -586,10 +587,10 @@ def error_check_peek():
             q.peek()
 
 #Database method
-#Tests the return of the document_from_netloc method, which should not be null
+#Tests the return of the document_from_url method, which should not be null
 def test_document_from_netloc():
     client = MongoClient(host='172.25.12.109', port=27017)
-    db = client['document_from_netloc']
+    db = client['document_from_url']
     url1 = 'https://www.reddit.com'
     url2 = 'https://www.reddit.com/r/all'
     url3 = 'https://www.reddit.com/r/gifs'
@@ -597,20 +598,20 @@ def test_document_from_netloc():
     for url in [url1, url2, url3, url4]:
         db.posts.insert_one({'Network location': url})
     for url in [url1, url2, url3, url4]:
-        assert database.document_from_netloc(db, url)['Network location'] == url
+        assert database.document_from_url(db, url)['Network location'] == url
     database.delete(db)
 
 #Database method
-#Error checks the document_from_netloc method for the InvalidUrlError when an invalid url is given as input
+#Error checks the document_from_url method for the InvalidUrlError when an invalid url is given as input
 def error_check_document_from_netloc_with_invalid_url():
     visitor = Visitor('document_from_netloc_with_invalid_url')
     for invalid in [[], 0, 'fat', set()]:
         with pytest.raises(InvalidUrlError):
-            database.document_from_netloc(visitor.database(), invalid)
+            database.document_from_url(visitor.database(), invalid)
     database.delete(visitor.database())
 
 #Visitor method
-#Error checks the document_from_netloc method for the MultipleUrlsInDatabaseError, which is raised when multiple cursors are returned
+#Error checks the document_from_url method for the MultipleUrlsInDatabaseError, which is raised when multiple cursors are returned
 def error_check_document_from_netloc_with_multiple_matching_url_entries():
     client = MongoClient(host='172.25.12.109', port=27017)
     db = client['multiple_matching_netloc_entries']
@@ -623,7 +624,7 @@ def error_check_document_from_netloc_with_multiple_matching_url_entries():
 
     for url in [url1, url2, url3, url4]:
         with pytest.raises(MultipleUrlsInDatabaseError):
-            database.document_from_netloc(db, url)
+            database.document_from_url(db, url)
     database.delete(db)
 
 #Visitor method
@@ -708,6 +709,49 @@ def error_check_init_streamer():
             Streamer(invalid)
 
 #Streamer method
+#Tests that the add_to_document_by_netloc method functions properly
+def test_add_to_document_by_netloc():
+    streamer = Streamer('test_update_working_link')
+    host = 'http://list-iptv.com'
+    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
+    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
+    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
+    for url in [url1, url2, url3]:
+        netloc = um.prepare(url)
+        ip_address = socket.gethostbyname(um.remove_schema(netloc))
+        streamer.add_to_document_by_netloc(netloc, ip_address, host, None)
+        doc = streamer.database().posts.find({'Network location': netloc})[0]
+
+        assert doc['Network location'] == netloc
+        assert doc['IP address'] == ip_address
+        assert doc['Linked by'] == [host]
+        assert doc['Working link'] is None
+
+    database.delete(streamer.database())
+
+#Streamer method
+#Error checks the add_to_document_by_netloc method with invalid urls
+def error_check_add_to_document_by_netloc_with_invalid_urls():
+    streamer = Streamer('error_check_add_to_document_by_netloc_with_invalid_urls')
+    ip_address = '192.168.56.1'
+    valid = 'http://reddit.com/r/all'
+    for invalid in [[], 0, None, set(), 'www.reddit.com']:
+        with pytest.raises(InvalidUrlError):
+            streamer.add_to_document_by_netloc(invalid, ip_address, valid, None)
+        with pytest.raises(InvalidUrlError):
+            streamer.add_to_document_by_netloc(valid, ip_address, invalid, None)
+
+#Streamer method
+#Error checks the add_to_document_by_netloc with invalid ip addresses
+def error_check_add_to_document_by_netloc_with_invalid_ip_address():
+    streamer = Streamer('error_check_add_to_document_by_netloc_with_invalid_ip_addresses')
+    netloc = 'http://reddit.com'
+    host = 'http://list-iptv.com'
+    for invalid in ['182.156.75', '192.314313.155.5', '192.168.56.1.1.1']:
+        with pytest.raises(InvalidInputError):
+            streamer.add_to_document_by_netloc(netloc, invalid, host, None)
+
+#Streamer method
 #Checks that the update_working_link method functions properly
 def test_update_working_link():
     streamer = Streamer('test_update_working_link')
@@ -723,9 +767,9 @@ def test_update_working_link():
 
     for url in [url1, url2, url3, url4, url5]:
         netloc = um.prepare(url)
-        doc = database.document_from_netloc(streamer.database(), netloc)
+        doc = database.document_from_url(streamer.database(), netloc)
         streamer.update_working_link(netloc, True, doc)
-        doc = database.document_from_netloc(streamer.database(), netloc)
+        doc = database.document_from_url(streamer.database(), netloc)
         assert doc['Network location'] == netloc
         assert doc['Working link'] is True
         assert doc['Linked by'] == [host]
@@ -736,14 +780,14 @@ def test_update_working_link():
 #Error checks the update_working_link method with invalid urls
 def error_check_update_working_link_with_invalid_url():
     streamer = Streamer('error_check_update_working_link_with_invalid_url')
-    for invalid in [[], 0, None, set()]:
+    for invalid in [[], 0, None, set(), 'www.reddit.com']:
         with pytest.raises(InvalidUrlError):
             streamer.update_working_link(invalid, True, None)
 
 #Streamer method
 #Error checks the update_working_links method with a None document
 def error_check_update_working_link_with_none_document():
-    streamer = Streamer('test_update_working_link')
+    streamer = Streamer('error_check_update_working_link_with_none_document')
     db = streamer.database()
     url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
     url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
@@ -751,8 +795,55 @@ def error_check_update_working_link_with_none_document():
     for url in [url1, url2, url3]:
         netloc = um.prepare(url)
         with pytest.raises(UrlNotInDatabaseError):
-            streamer.update_working_link(netloc, None, database.document_from_netloc(db, netloc))
+            streamer.update_working_link(netloc, None, database.document_from_url(db, netloc))
 
+#Streamer method
+#Tests that the update_linked_by method functions properly
+def test_update_linked_by():
+    streamer = Streamer('test_update_linked_by')
+    db = streamer.database()
+    host1 = 'http://list-iptv.com'
+    host2 = 'http://ramalin.com'
+    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
+    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
+    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
+    url4 = 'http://176.31.226.149:25461/live/testest/testest/339.ts'
+    url5 = 'http://145.239.108.17:6500/live/36HzfHlJse/QWVCdutSZL/4429.ts'
+
+    for url in [url1, url2, url3, url4, url5]:
+        netloc = um.prepare(url)
+        streamer.add_to_stream(netloc, host1)
+        doc1 = database.document_from_url(db, netloc)
+        streamer.update_linked_by(netloc, host2, doc1)
+        doc2 = database.document_from_url(db, netloc)
+
+        assert doc1['Linked by'] == [host1]
+        assert doc2['Linked by'] == [host1, host2]
+
+#Streamer method
+#Error checks the update_linked_by method with invalid urls
+def error_check_update_linked_by_with_invalid_urls():
+    streamer = Streamer('error_check_update_linked_by_with_invalid_url')
+    valid = 'http://reddit.com/r/all'
+    for invalid in [[], 0, None, set(), 'www.reddit.com']:
+        with pytest.raises(InvalidUrlError):
+            streamer.update_linked_by(invalid, valid, None)
+        with pytest.raises(InvalidUrlError):
+            streamer.update_linked_by(valid, invalid, None)
+
+#Streamer method
+#Error checks the update_linked_by method with a None document
+def error_check_update_linked_by_with_none_document():
+    streamer = Streamer('error_check_update_linked_by_with_none_document')
+    db = streamer.database()
+    host = 'http://list-iptv.com'
+    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
+    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
+    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
+    for url in [url1, url2, url3]:
+        netloc = um.prepare(url)
+        with pytest.raises(UrlNotInDatabaseError):
+            streamer.update_linked_by(netloc, host, database.document_from_url(db, netloc))
 
 #Streamer method
 #Tests that the add to stream method function properly when adding a network location to the database that has not yet appeared
@@ -768,7 +859,7 @@ def test_add_to_stream_with_single_host():
         streamer.add_to_stream(url, host)
 
     for url in [url1, url2, url3, url4, url5]:
-        assert database.document_from_netloc(streamer.database(), um.prepare(url)) is not None
+        assert database.document_from_url(streamer.database(), um.prepare(url)) is not None
     database.delete(streamer.database())
 
 #Streamer method
@@ -786,7 +877,7 @@ def test_add_to_stream_multiple_hosts():
             streamer = Streamer('add_to_stream_with_multiple_hosts')
             streamer.add_to_stream(url, host)
         netloc = um.prepare(url)
-        doc = database.document_from_netloc(streamer.database(), netloc)
+        doc = database.document_from_url(streamer.database(), netloc)
         assert doc['Linked by'] == [host1, host2, host3]
     database.delete(streamer.database())
 
@@ -976,8 +1067,11 @@ def visitor_tests():
             error_check_visit_url_with_url_in_database, test_parent_from_url, error_check_parent_from_url_with_invalid_url]
 
 def streamer_tests():
-    return [error_check_init_streamer, test_update_working_link, error_check_update_working_link_with_invalid_url,
-            error_check_update_working_link_with_none_document, test_add_to_stream_with_single_host, test_add_to_stream_multiple_hosts]
+    return [error_check_init_streamer, test_add_to_document_by_netloc, error_check_add_to_document_by_netloc_with_invalid_urls,
+            error_check_add_to_document_by_netloc_with_invalid_ip_address, test_update_working_link,
+            error_check_update_working_link_with_invalid_url,error_check_update_working_link_with_none_document,
+            test_update_linked_by, error_check_update_linked_by_with_invalid_urls, error_check_update_linked_by_with_none_document,
+            test_add_to_stream_with_single_host, test_add_to_stream_multiple_hosts]
 
 def crawler_tests():
     return [error_check_unzip, test_parse_with_m3u, test_parse_with_download, test_parse_with_zip, test_parse_text_from_parse,
@@ -988,7 +1082,7 @@ def get_tests():
 
 
 def test_runner():
-    for test in crawler_tests():
+    for test in streamer_tests():
         print(test.__name__)
         test()
 

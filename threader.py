@@ -3,17 +3,18 @@ from crawler import Crawler
 
 
 class MyThread(threading.Thread):
-    def __init__(self, page):
+    def __init__(self, page, override_start_url_check=False):
         threading.Thread.__init__(self)
         self.page = page
-        self.ts_files = []
+        self.override = override_start_url_check
 
     def run(self):
-        Crawler(host=self.page, limit=12000)
+        Crawler(start=self.page, override_start_url_check=self.override, limit=12000)
+        print('Finished crawling %s' % self.page)
 
 def create_threads():
     print('Threading...')
-    thread1 = MyThread('http://www.freshiptv.com')
+    thread1 = MyThread('http://freshiptv.com')
     thread2 = MyThread('http://iptvsatlinks.blogspot.com')
     thread3 = MyThread('https://cafe-tv.net')
     thread4 = MyThread('https://freedailyiptv.com')
@@ -23,9 +24,8 @@ def create_threads():
     thread8 = MyThread('http://freeworldwideiptv.com') #503 status code
     thread9 = MyThread('http://ramalin.com')
     thread10 = MyThread('http://i-ptv.blogspot.com')
-    thread11 = MyThread('http://www.iptvsrc.ml')
-    return[thread1]
-    #return [thread1, thread2, thread3, thread4, thread5, thread6, thread7, thread8, thread9]
+    thread11 = MyThread('https://pastebin.com/raw/M4q7YxPW', override_start_url_check=True)
+    return[thread10]
 
 def run_threads():
     threads = create_threads()
@@ -37,3 +37,5 @@ def run_threads():
 
 if __name__ == '__main__':
     run_threads()
+
+

@@ -19,7 +19,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Crawler(object):
-    def __init__(self, host=None, test=None, limit=float('inf'), train=False):
+    def __init__(self, start=None, override_start_url_check=False, test=None, limit=float('inf'), train=False):
         self.hashes = set()
         self.counter = 1
         self.limit = limit
@@ -27,16 +27,20 @@ class Crawler(object):
         self.train = train
         self.host = None
         self.visited = {}
-        now = datetime.datetime.now()
-        self.time = '%d-%d-%d:%d' % (now.year, now.month, now.day, 0 if now.hour < 12 else 12)
-        self.streamer = Streamer('%s_streams' % self.time )
         if test:
             self.host = um.prepare(test)
             self.visited[test] = None
             self.streamer = Streamer('test')
-        if host:
-            self.host = um.prepare(host)
-            self.queue.enqueue(self.host)
+        if start:
+            self.host = um.prepare(start)
+            if not override_start_url_check and self.host != start:
+                raise InvalidStartUrlError('The start page is %s and the host is %s, note that if override_start_url_check is set to'
+                                           'False then the start page and host must be identical. Currently override_start_url_check'
+                                           'is set to %s' % (start, self.host, override_start_url_check))
+            self.queue.enqueue(start)
+            now = datetime.datetime.now()
+            time = '%d-%d-%d:%d' % (now.year, now.month, now.day, 0 if now.hour < 12 else 12)
+            self.streamer = Streamer('%s_streams' % time)
             self.visited[self.host] = None
             while self.counter < self.limit and not self.queue.empty():
                 self.crawl(self.queue.dequeue())
@@ -46,8 +50,11 @@ class Crawler(object):
             raise InvalidUrlError('Cannot crawl page of invalid url: ' + str(page))
         request = requester.make_request(page)
         if request:
-            print('Crawling %s: %s, total size is currently %s, the queue has %s items and is %s bytes large, visited size is %s' %
-                  (page, self.counter, asizeof.asizeof(self), self.queue.size(), asizeof.asizeof(self.queue), asizeof.asizeof(self.visited)))
+            if self.counter % 10 == 0:
+                print('After crawling %s from %s links the total size is in bytes is currently %s, the queue has %s items '
+                      'and is %s bytes large, visited size is %s' % (self.counter, self.host, asizeof.asizeof(self),
+                                                                     self.queue.size(), asizeof.asizeof(self.queue),
+                                                                     asizeof.asizeof(self.visited)))
             self.counter += 1
             try:
                 soup = BeautifulSoup(request.text, 'html.parser')
@@ -162,7 +169,7 @@ class Crawler(object):
     def fix_url(self, url):
         if not requester.validate_url(url):
             return None
-        fixed_url = (um.phish(url))
+        fixed_url = um.reduce_queries(um.phish(url))
         if not requester.internal(fixed_url, self.host):
             fixed_url = um.expand(fixed_url)
         if fixed_url in self.visited:

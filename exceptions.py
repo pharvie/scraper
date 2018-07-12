@@ -47,3 +47,6 @@ class ServerNotRunningError(BaseError):
 
 class StreamTimedOutError(BaseError):
     pass
+
+class InvalidStartUrlError(BaseError):
+    pass
