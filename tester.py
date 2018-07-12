@@ -12,7 +12,9 @@ from database import Visitor, Streamer
 from pymongo import MongoClient
 import socket
 
-def test_validate():
+#Requester method
+#Tests that the validate_url method functions properly
+def test_validate_url():
     url1 = 'https://www.reddit.com'
     url2 = 'www.reddit.com'
     url3 = None
@@ -32,31 +34,13 @@ def test_validate():
 
     assert valid_urls == [url1, url7, url8, url9, url10]
 
-def test_remove_identifier():
-    url1 = requester.remove_identifier('http://www.reddit.com')
-    url2 = requester.remove_identifier('http://ramalin.com')
-    url3 = requester.remove_identifier('http://www.ramalin.com')
-    url4 = requester.remove_identifier('http://www.ip.akaid.com')
-
-    assert url1 == 'http://reddit.com'
-    assert url2 == url3 == 'http://ramalin.com'
-    assert url4 == 'http://ip.akaid.com'
-
-def error_check_remove_identifier():
-    loc1 = None
-    loc2 = []
-    loc3 = 23
-    loc4 = {}
-    locs = [loc1, loc2, loc3, loc4]
-    for loc in locs:
-        with pytest.raises(InvalidUrlError):
-            requester.remove_identifier(loc)
-
+#Requester method
+#Tests that the internal method function properly
 def test_internal():
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://reddit.com/'
+    host1 = 'https://www.reddit.com'
+    host2 = 'https://reddit.com/'
 
-    def internal_func(base):
+    def internal_func(base): #helper metho
         url1 = 'https://www.reddit.com'
         url2 = 'https://reddit.com/r/aww'
         url3 = 'https://www.reddit.com/user/MzTriggerHappy'
@@ -71,9 +55,11 @@ def test_internal():
 
         assert internal_urls == [url1, url2, url3, url4]
 
-    internal_func(url1)
-    internal_func(url2)
+    internal_func(host1)
+    internal_func(host2)
 
+#Requester method
+#Error checks the internal method with invalid urls
 def error_check_internal():
     url1 = None
     url2 = 23
@@ -87,6 +73,8 @@ def error_check_internal():
         with pytest.raises(InvalidUrlError):
             requester.internal(valid, url)
 
+#Requester method
+#Checks that the make_request method functions properly
 def test_make_request():
     url1 = 'https://www.google.com'
     url2 = 'http://freedailyiptv.com/links/29-05-2018/SE_freedailyiptv.com.m3u'
@@ -100,6 +88,8 @@ def test_make_request():
 
     assert valid_requests == [url1, url2]
 
+#Requester method
+#Error checks the make_request method with invalid urlsz
 def error_check_make_request():
     url1 = None
     url2 = 23
@@ -110,6 +100,8 @@ def error_check_make_request():
         with pytest.raises(InvalidUrlError):
             requester.make_request(url)
 
+#Requester method
+#Checks the the get_format method functions properly
 def test_get_format():
     request1 = requester.make_request('http://freedailyiptv.com/links/29-05-2018/SE_freedailyiptv.com.m3u')
     request2 = requester.make_request('http://freedailyiptv.com/links/11-06-2018/World_freedailyiptv.com.m3u')
@@ -139,6 +131,8 @@ def test_get_format():
     for f in htmls:
         assert f == 'html', 'Error: incorrect format'
 
+#Requester method
+#Error checks the requester method with invalid urls
 def error_check_get_format():
     request1 = None
     request2 = 23
@@ -149,6 +143,8 @@ def error_check_get_format():
         with pytest.raises(InvalidInputError):
             requester.get_format(request)
 
+#Requester method
+#Tests that the hash content method functions properly
 def test_hash_content():
     def hash_unzip(f):
         z = zipfile.ZipFile(f)
@@ -170,6 +166,8 @@ def test_hash_content():
     for f in [file5, file6]:
         assert requester.hash_content(f) == '06af3dfa1ad9a1cc56331efa5bbb41e4a1c7b48e'
 
+#Requester method
+#Error checks the hash_content method with non-bytes input
 def error_check_hash_content():
     file1 = None
     file2 = 23
@@ -179,6 +177,8 @@ def error_check_hash_content():
         with pytest.raises(InvalidInputError):
             requester.hash_content(f)
 
+#Requester method
+#Tests that the subpaths method functions properly
 def test_subpaths():
     url1 = 'http://reddit.com/r/all'
     url2 = 'http://reddit.com/r/all/'
@@ -193,6 +193,8 @@ def test_subpaths():
     for url in urls:
         subpaths = requester.subpaths(url)
         assert subpaths == []
+
+#Requester method
 
 def error_check_subpaths():
     url1 = None
@@ -309,6 +311,26 @@ def error_check_reduce():
     for url in urls:
         with pytest.raises(InvalidUrlError):
             um.reduce(url)
+
+def test_remove_identifier():
+    url1 = um.remove_identifier('http://www.reddit.com')
+    url2 = um.remove_identifier('http://ramalin.com')
+    url3 = um.remove_identifier('http://www.ramalin.com')
+    url4 = um.remove_identifier('http://www.ip.akaid.com')
+
+    assert url1 == 'http://reddit.com'
+    assert url2 == url3 == 'http://ramalin.com'
+    assert url4 == 'http://ip.akaid.com'
+
+def error_check_remove_identifier():
+    loc1 = None
+    loc2 = []
+    loc3 = 23
+    loc4 = {}
+    locs = [loc1, loc2, loc3, loc4]
+    for loc in locs:
+        with pytest.raises(InvalidUrlError):
+            um.remove_identifier(loc)
 
 def test_deport():
     url1 = um.deport('http://192.68.132.1:800')
@@ -709,7 +731,7 @@ def error_check_init_streamer():
             Streamer(invalid)
 
 #Streamer method
-#Tests that the add_to_document_by_netloc method functions properly
+#Tests that the add_to_database_by_netloc method functions properly
 def test_add_to_document_by_netloc():
     streamer = Streamer('test_update_working_link')
     host = 'http://list-iptv.com'
@@ -718,38 +740,38 @@ def test_add_to_document_by_netloc():
     url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
     for url in [url1, url2, url3]:
         netloc = um.prepare(url)
-        ip_address = socket.gethostbyname(um.remove_schema(netloc))
-        streamer.add_to_document_by_netloc(netloc, ip_address, host, None)
+        ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2]
+        streamer.add_to_database_by_netloc(netloc, ip_addresses, host, None)
         doc = streamer.database().posts.find({'Network location': netloc})[0]
 
         assert doc['Network location'] == netloc
-        assert doc['IP address'] == ip_address
+        assert doc['IP addresses'] == ip_addresses
         assert doc['Linked by'] == [host]
         assert doc['Working link'] is None
 
     database.delete(streamer.database())
 
 #Streamer method
-#Error checks the add_to_document_by_netloc method with invalid urls
+#Error checks the add_to_database_by_netloc method with invalid urls
 def error_check_add_to_document_by_netloc_with_invalid_urls():
     streamer = Streamer('error_check_add_to_document_by_netloc_with_invalid_urls')
-    ip_address = '192.168.56.1'
+    ip_addresses = ['192.168.56.1']
     valid = 'http://reddit.com/r/all'
     for invalid in [[], 0, None, set(), 'www.reddit.com']:
         with pytest.raises(InvalidUrlError):
-            streamer.add_to_document_by_netloc(invalid, ip_address, valid, None)
+            streamer.add_to_database_by_netloc(invalid, ip_addresses, valid, None)
         with pytest.raises(InvalidUrlError):
-            streamer.add_to_document_by_netloc(valid, ip_address, invalid, None)
+            streamer.add_to_database_by_netloc(valid, ip_addresses, invalid, None)
 
 #Streamer method
-#Error checks the add_to_document_by_netloc with invalid ip addresses
+#Error checks the add_to_database_by_netloc with invalid ip addresses
 def error_check_add_to_document_by_netloc_with_invalid_ip_address():
     streamer = Streamer('error_check_add_to_document_by_netloc_with_invalid_ip_addresses')
     netloc = 'http://reddit.com'
     host = 'http://list-iptv.com'
-    for invalid in ['182.156.75', '192.314313.155.5', '192.168.56.1.1.1']:
+    for invalid in [['182.156.75', '192.314313.155.5'], ['192.168.68.1', '192.168.56.1.1.1']]:
         with pytest.raises(InvalidInputError):
-            streamer.add_to_document_by_netloc(netloc, invalid, host, None)
+            streamer.add_to_database_by_netloc(netloc, invalid, host, None)
 
 #Streamer method
 #Checks that the update_working_link method functions properly
@@ -1046,14 +1068,14 @@ def test_ref_urls():
     assert 'http://hdreambox.dyndns.info' in streams
 
 def requester_tests():
-    return [test_validate, test_remove_identifier, error_check_remove_identifier, test_internal, error_check_internal, test_make_request,
-            error_check_make_request, test_get_format, error_check_get_format, test_hash_content, error_check_hash_content, test_subpaths,
-            error_check_subpaths, test_purity, error_check_purity, test_phrases, error_check_phrases]
+    return [test_validate_url, test_internal, error_check_internal, test_make_request, error_check_make_request, test_get_format,
+            error_check_get_format, test_hash_content, error_check_hash_content, test_subpaths, error_check_subpaths, test_purity,
+            error_check_purity, test_phrases, error_check_phrases]
 
 def url_mutator_tests():
-    return [test_reduce, error_check_reduce, test_deport, error_check_deport, test_remove_top, error_check_remove_top, test_remove_schema,
-            error_check_remove_schema, test_prepare, error_check_prepare, test_partial, error_check_partial, test_phish,
-            error_check_phish, error_check_expand]
+    return [test_reduce, error_check_reduce, test_remove_identifier, error_check_remove_identifier, test_deport, error_check_deport,
+            test_remove_top, error_check_remove_top, test_remove_schema, error_check_remove_schema, test_prepare, error_check_prepare,
+            test_partial, error_check_partial, test_phish, error_check_phish, error_check_expand]
 
 def queue_tests():
     return [test_enqueue, test_dequeue, error_check_dequeue, test_peek, error_check_peek]

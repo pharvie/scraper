@@ -19,7 +19,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Crawler(object):
-    def __init__(self, start=None, override_start_url_check=False, test=None, limit=float('inf'), train=False):
+    def __init__(self, start=None, override_start_url_check=False, overridden_host=None, test=None, limit=float('inf'), train=False):
         self.hashes = set()
         self.counter = 1
         self.limit = limit
@@ -32,7 +32,11 @@ class Crawler(object):
             self.visited[test] = None
             self.streamer = Streamer('test')
         if start:
-            self.host = um.prepare(start)
+            start = um.remove_identifier(start)
+            if overridden_host:
+                self.host = um.prepare(overridden_host)
+            else:
+                self.host = um.prepare(start)
             if not override_start_url_check and self.host != start:
                 raise InvalidStartUrlError('The start page is %s and the host is %s, note that if override_start_url_check is set to'
                                            'False then the start page and host must be identical. Currently override_start_url_check'

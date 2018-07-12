@@ -43,7 +43,7 @@ def partial(url, host):
 def prepare(url):
     if not requester.validate_url(url):
         raise InvalidUrlError('Cannot prepare invalid url: ' + str(url))
-    url = reduce(deport(requester.remove_identifier(url)))
+    url = reduce(deport(remove_identifier(url)))
     parsed = urlparse(url)
     return parsed.scheme + '://' + parsed.netloc
 
@@ -58,7 +58,7 @@ def remove_schema(url):
 def remove_top(url):
     if not requester.validate_url(url):
         raise InvalidUrlError('Cannot remove top of invalid url: ' + str(url))
-    url = deport(requester.remove_identifier(url))
+    url = deport(remove_identifier(url))
     netloc = urlparse(url).netloc
     if re.search(regex['ip'], netloc):
         return netloc, 'ip'
@@ -78,6 +78,26 @@ def deport(url):
         return search.group(1)
     return url
 
+"""
+Method: remove_identifier
+Purpose: removes the identifiers from an url
+Example:
+    http://www.reddit.com -> http://reddit.com
+Input:
+    url: the url whose identifier is removed
+Returns:
+    url: the url with the identifier removed
+Raises:
+    InvalidUrlError: if the url is invalid
+"""
+
+def remove_identifier(url):
+    if not requester.validate_url(url):
+        raise InvalidUrlError('Cannot remove the identifier of an invalid url: %s' % url)
+    search = re.search(regex['identity'], url)
+    if search:
+        return search.group(1) + search.group(3) #search group 2 contains the identifier
+    return url
 
 def reduce(url):
     if not requester.validate_url(url):

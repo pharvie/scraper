@@ -206,22 +206,22 @@ class Streamer(object):
                 self.connection_attempts[netloc] = 1
             if netloc not in self.ip_addresses: #if there isn't an IP address assigned to the network location
                 try:
-                    ip_address = socket.gethostbyname(um.remove_schema(netloc)) #try to fetch the IP address
+                    ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2] #fetches all IP addresses from the network location
                 except socket.gaierror: #if this error is raised then the network location is down
-                    ip_address = None #set the ip_address to None
+                    ip_addresses = None #set the ip_address to None
                     print('%s is invalid due to broken IP address' % url)
-                    self.broken_stream_links.add(netloc) #add it = broken_stream_links
+                    self.broken_stream_links.add(netloc) #add it to broken_stream_links
                     doc = document_from_url(self._db, netloc)
                     if doc:
                         if host not in doc['Linked by']:
                             self.update_linked_by(netloc, host, doc)
                     else:
-                        self.add_to_document_by_netloc(netloc, ip_address, host, False) #add it to the database as a non-working stream
+                        self.add_to_database_by_netloc(netloc, ip_addresses, host, False) #add it to the database as a non-working stream
                     self.connection_attempts[netloc] = float('inf') #set the connection attempts to infinity to prevent redundant checking
                 else:
-                    self.ip_addresses[netloc] = ip_address #store the IP address at the network location
+                    self.ip_addresses[netloc] = ip_addresses #store the IP address at the network location
             else: #if there is an IP address assigned to the network location
-                ip_address = self.ip_addresses[netloc] #fetch it, prevent a redundant and expensive make_request
+                ip_addresses = self.ip_addresses[netloc] #fetch it, prevent a redundant and expensive make_request
             if self.connection_attempts[netloc] <= self.fibs[-1]: #if the connection attempts have not exceeded the last value in fibs
                 if self.connection_attempts[netloc] in self.fibs: #if the current connection attempt is a fibonacci number
                     #note that I use fibonacci numbers to 'randomize' where the algorithm checks in a given m3u file, as well as prevent
@@ -252,17 +252,17 @@ class Streamer(object):
                             evaluation = requester.evaluate_stream(url)
                         except StreamTimedOutError:
                             #print('%s is invalid due to a timeout error' % url)
-                            self.add_to_document_by_netloc(netloc, ip_address, host, False) # add the netloc to the database as a broken stream
+                            self.add_to_database_by_netloc(netloc, ip_addresses, host, False) # netloc ia added as a broken stream
                             # as retrying streams that timeout will be extremely costly
                             self.broken_stream_links.add(netloc)
                         else:
                             if evaluation: #if it's a working stream
                                 print('%s is a valid stream' % url)
-                                self.add_to_document_by_netloc(netloc, ip_address, host, True) #add the netloc to the database as a working stream
+                                self.add_to_database_by_netloc(netloc, ip_addresses, host, True) #add the netloc as a working stream
                                 self.working_stream_links.add(netloc) #add the netloc to working_stream_links
                             else:
                                 #print('%s might be an invalid stream' % url)
-                                self.add_to_document_by_netloc(netloc, ip_address, host, None) #add the netloc to the database with an unknown
+                                self.add_to_database_by_netloc(netloc, ip_addresses, host, None) #add the netloc with an unknown
                                 #stream status, as the network location has only been checked once
                 self.connection_attempts[netloc] += 1 #increment the number of connection attempts made
             elif self.connection_attempts[netloc] != float('inf'): #if the connection attempts have exceeded the max value in fibs then the
@@ -322,7 +322,7 @@ class Streamer(object):
         self._db.posts.update({'Network location': netloc}, {'$set': {'Working link': working_link}})
 
     """
-    Method: add_to_document_by_netloc
+    Method: add_to_database_by_netloc
     Purpose: creates a dictionary and adds it as a document to the database
     Inputs:
         netloc: network location to be added to the database
@@ -339,18 +339,20 @@ class Streamer(object):
         InvalidInputError: if the ip_address is not a valid IP address
     """
 
-    def add_to_document_by_netloc(self, netloc, ip_address, host, working_link):
+    def add_to_database_by_netloc(self, netloc, ip_addresses, host, working_link):
         if not requester.validate_url(netloc):
             raise InvalidUrlError('Cannot update document with an invalid url: %s' % netloc)
         if not requester.validate_url(host):
             raise InvalidUrlError('Cannot update document with an invalid host: %s' % host)
-        if ip_address is not None and not re.search(regex['ip'], ip_address):
-            raise InvalidInputError('Cannot updated document with an invalid IP address: %s' % ip_address)
+        if ip_addresses is not None:
+            for ip_address in ip_addresses:
+                if not re.search(regex['ip'], ip_address):
+                    raise InvalidInputError('Cannot updated document with an invalid IP address: %s' % ip_address)
         doc = document_from_url(self._db, netloc) #sometimes when threads are running concurrently, this additional check is needed
         if not doc:
             data = {
                 'Network location': netloc,
-                'IP address': ip_address,
+                'IP addresses': ip_addresses,
                 'Linked by': [host],
                 'Working link': working_link
             }

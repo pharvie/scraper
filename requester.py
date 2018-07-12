@@ -1,5 +1,6 @@
-import validators
 from exceptions import *
+import url_mutator as um
+import validators
 from urllib.parse import urlparse
 import requests
 from requests.models import Response
@@ -254,32 +255,11 @@ def internal(url, host):
         raise InvalidUrlError('Cannot define internal status of invalid url: ' + str(url))
     if not validate_url(host):
         raise InvalidUrlError('Cannot define internal status with invalid base: ' + str(host))
-    url = remove_identifier(url)
-    host = remove_identifier(host)
+    url = um.remove_identifier(url)
+    host = um.remove_identifier(host)
     url_netloc = urlparse(url).netloc
     host_netloc = urlparse(host).netloc
     return url_netloc == host_netloc
-
-"""
-Method: remove_identifier
-Purpose: removes the identifiers from an url
-Example:
-    http://www.reddit.com -> http://reddit.com
-Input:
-    url: the url whose identifier is removed
-Returns:
-    url: the url with the identifier removed
-Raises:
-    InvalidUrlError: if the url is invalid
-"""
-
-def remove_identifier(url):
-    if not validate_url(url):
-        raise InvalidUrlError('Cannot remove the identifier of an invalid url: %s' % url)
-    search = re.search(regex['identity'], url)
-    if search:
-        return search.group(1) + search.group(3) #search group 2 contains the identifier
-    return url
 
 """
 Method: validate_url
