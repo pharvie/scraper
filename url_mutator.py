@@ -40,9 +40,9 @@ def partial(url, host):
         raise InvalidHostError('Cannot fix partiality with invalid host: ' + str(url))
     return urljoin(host, url)
 
-def prepare(url):
+def prepare_netloc(url):
     if not requester.validate_url(url):
-        raise InvalidUrlError('Cannot prepare invalid url: ' + str(url))
+        raise InvalidUrlError('Cannot prepare_netloc invalid url: ' + str(url))
     url = reduce(deport(remove_identifier(url)))
     parsed = urlparse(url)
     return parsed.scheme + '://' + parsed.netloc

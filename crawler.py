@@ -1,6 +1,6 @@
 from database import *
 import regex
-from my_queue import Queue
+from collections import deque
 import urllib3
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
@@ -23,41 +23,43 @@ class Crawler(object):
         self.hashes = set()
         self.counter = 1
         self.limit = limit
-        self.queue = Queue()
+        self.internal_links = deque()
+        self.host_links = deque()
         self.train = train
         self.host = None
-        self.visited = {}
+        self.visited = set()
         if test:
-            self.host = um.prepare(test)
-            self.visited[test] = None
+            self.host = um.prepare_netloc(test)
+            self.visited.add(test)
             self.streamer = Streamer('test')
         if start:
             start = um.remove_identifier(start)
             if overridden_host:
-                self.host = um.prepare(overridden_host)
+                self.host = um.prepare_netloc(overridden_host)
             else:
-                self.host = um.prepare(start)
+                self.host = um.prepare_netloc(start)
             if not override_start_url_check and self.host != start:
                 raise InvalidStartUrlError('The start page is %s and the host is %s, note that if override_start_url_check is set to'
                                            'False then the start page and host must be identical. Currently override_start_url_check'
                                            'is set to %s' % (start, self.host, override_start_url_check))
-            self.queue.enqueue(start)
+            self.internal_links.append(start)
             now = datetime.datetime.now()
             time = '%d-%d-%d:%d' % (now.year, now.month, now.day, 0 if now.hour < 12 else 12)
             self.streamer = Streamer('%s_streams' % time)
-            self.visited[self.host] = None
-            while self.counter < self.limit and not self.queue.empty():
-                self.crawl(self.queue.dequeue())
+            self.visited.add(self.host)
+            while self.counter < self.limit and self.internal_links:
+                self.crawl(self.internal_links.popleft())
 
     def crawl(self, page):
         if not requester.validate_url(page):
             raise InvalidUrlError('Cannot crawl page of invalid url: ' + str(page))
         request = requester.make_request(page)
         if request:
+            print('Crawling %s' % page)
             if self.counter % 10 == 0:
                 print('After crawling %s from %s links the total size is in bytes is currently %s, the queue has %s items '
                       'and is %s bytes large, visited size is %s' % (self.counter, self.host, asizeof.asizeof(self),
-                                                                     self.queue.size(), asizeof.asizeof(self.queue),
+                                                                     len(self.internal_links), asizeof.asizeof(self.internal_links),
                                                                      asizeof.asizeof(self.visited)))
             self.counter += 1
             try:
@@ -67,9 +69,9 @@ class Crawler(object):
             else:
                 if soup:
                     self.check_text_urls(soup, page)
-                    self.check_ref_urls(soup, page)
+                    self.check_ref_urls(soup)
 
-    def check_ref_urls(self, soup, parent):
+    def check_ref_urls(self, soup):
         for a in soup.find_all('a', href=True):
             url = a.get('href')
             if not re.search(regex['invalid'], url) and url != '':
@@ -77,10 +79,10 @@ class Crawler(object):
                 url = self.fix_url(url)
                 if url:
                     if url not in self.visited:
-                        self.visited[url] = parent
+                        self.visited.add(url)
                         self.check_for_files(url)
                         if requester.internal(url, self.host) and not re.search(regex['m3u'], url):
-                            self.queue.enqueue(url)
+                            self.internal_links.append(url)
 
     def check_text_urls(self, soup, parent):
         for br in soup.find_all('br'):
@@ -108,14 +110,14 @@ class Crawler(object):
                         curr = urljoin(parent, curr)
                     url = self.fix_url(curr)
                     if url:
-                        netloc = um.prepare(url)
-                        if netloc not in internal_m3us or requester.internal(url, self.host):
+                        netloc = um.prepare_netloc(url)
+                        if netloc not in internal_m3us:
                             if not ext_above or ext_above and re.search(regex['m3u'], url, re.IGNORECASE):
                                 if url not in self.visited:
-                                    self.visited[url] = parent
                                     self.check_for_files(url)
+                                    self.visited.add(url)
                             elif ext_above:
-                                self.streamer.add_to_stream(url, self.host)
+                                self.streamer.add_to_streams(url, self.host)
                             if re.search(regex['m3u'], url) and not requester.internal(url, self.host):
                                 internal_m3us.add(netloc)
                     curr = next(splitext_iter).strip()
@@ -128,11 +130,11 @@ class Crawler(object):
         parsed = urlparse(url)
         url_search = parsed.path + parsed.query
         if re.search(regex['m3u'], url_search) or (re.search(regex['dl'], url_search) and not re.search(regex['ndl'], url_search)) \
-                or re.search(regex['zip'], url_search) or re.search(regex['raw'], url_search):
+                or re.search(regex['zip'], url_search) or re.search(regex['raw'], url):
             request = requester.make_request(url)
             if request:
                 if request.url != url:
-                    self.visited[request.url] = self.visited[url]
+                    self.visited.add(request.url)
                 self.extract_file(request)
 
     def extract_file(self, request):
@@ -143,8 +145,10 @@ class Crawler(object):
                 self.parse_text(splitext, parent=request.url)
         elif file_type == 'zip':
             self.unzip(request)
-        elif file_type == 'html':
-            self.crawl(request.url)
+        elif file_type == 'html' and not re.search(r'\.php', request.url):
+            if request.url not in self.visited:
+                self.internal_links.appendleft(request.url)
+                self.visited.add(request.url)
 
     def unzip(self, request):
         if request is None or not isinstance(request, Response):
@@ -182,4 +186,3 @@ class Crawler(object):
 
     def get_streamer(self):
         return self.streamer
-

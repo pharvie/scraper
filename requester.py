@@ -33,7 +33,7 @@ Raises:
 def evaluate_stream(url):
     if not validate_url(url):
         raise InvalidUrlError('Cannot evaluate stream of invalid url: %s' % url)
-    timeout = 5 #increasing the timeout will lead to more time being spent on checking potentially deprecated streams, leading
+    timeout = 16 #increasing the timeout will lead to more time being spent on checking potentially deprecated streams, leading
     # to a longer total runtime, however, it will also lead to a greater accuracy as there are some outlier links that do work
     # but simply take a while to load. I recommend keeping it around 5
     try:
@@ -225,7 +225,8 @@ def make_request(url):
     session.mount('http://', adapter) #I don't remember what these do
     session.mount('https://', adapter)
     try:
-        r = requests.get(url, timeout=3, headers=headers) #make a request
+        r = requests.get(url, timeout=5, headers=headers) #make a request
+        #print(r.status_code)
     except (ConnectionError, ReadTimeout, TooManyRedirects, ChunkedEncodingError): #except connection errors
         pass
     else: #otherwise

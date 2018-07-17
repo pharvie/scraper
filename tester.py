@@ -7,13 +7,12 @@ from my_queue import Queue
 import re
 import zipfile
 from bs4 import BeautifulSoup
-import database
-from database import Visitor, Streamer
-from pymongo import MongoClient
+from database import Streamer
 import socket
+from bson import SON
 
-#Requester method
-#Tests that the validate_url method functions properly
+# Requester method
+# Tests that the validate_url method functions properly
 def test_validate_url():
     url1 = 'https://www.reddit.com'
     url2 = 'www.reddit.com'
@@ -34,13 +33,13 @@ def test_validate_url():
 
     assert valid_urls == [url1, url7, url8, url9, url10]
 
-#Requester method
-#Tests that the internal method function properly
+# Requester method
+# Tests that the internal method function properly
 def test_internal():
     host1 = 'https://www.reddit.com'
     host2 = 'https://reddit.com/'
 
-    def internal_func(base): #helper metho
+    def internal_func(base): # helper metho
         url1 = 'https://www.reddit.com'
         url2 = 'https://reddit.com/r/aww'
         url3 = 'https://www.reddit.com/user/MzTriggerHappy'
@@ -58,8 +57,8 @@ def test_internal():
     internal_func(host1)
     internal_func(host2)
 
-#Requester method
-#Error checks the internal method with invalid urls
+# Requester method
+# Error checks the internal method with invalid urls
 def error_check_internal():
     url1 = None
     url2 = 23
@@ -73,8 +72,8 @@ def error_check_internal():
         with pytest.raises(InvalidUrlError):
             requester.internal(valid, url)
 
-#Requester method
-#Checks that the make_request method functions properly
+# Requester method
+# Checks that the make_request method functions properly
 def test_make_request():
     url1 = 'https://www.google.com'
     url2 = 'http://freedailyiptv.com/links/29-05-2018/SE_freedailyiptv.com.m3u'
@@ -88,8 +87,8 @@ def test_make_request():
 
     assert valid_requests == [url1, url2]
 
-#Requester method
-#Error checks the make_request method with invalid urlsz
+# Requester method
+# Error checks the make_request method with invalid urlsz
 def error_check_make_request():
     url1 = None
     url2 = 23
@@ -100,8 +99,8 @@ def error_check_make_request():
         with pytest.raises(InvalidUrlError):
             requester.make_request(url)
 
-#Requester method
-#Checks the the get_format method functions properly
+# Requester method
+# Checks the the get_format method functions properly
 def test_get_format():
     request1 = requester.make_request('http://freedailyiptv.com/links/29-05-2018/SE_freedailyiptv.com.m3u')
     request2 = requester.make_request('http://freedailyiptv.com/links/11-06-2018/World_freedailyiptv.com.m3u')
@@ -131,8 +130,8 @@ def test_get_format():
     for f in htmls:
         assert f == 'html', 'Error: incorrect format'
 
-#Requester method
-#Error checks the requester method with invalid urls
+# Requester method
+# Error checks the requester method with invalid urls
 def error_check_get_format():
     request1 = None
     request2 = 23
@@ -143,8 +142,8 @@ def error_check_get_format():
         with pytest.raises(InvalidInputError):
             requester.get_format(request)
 
-#Requester method
-#Tests that the hash content method functions properly
+# Requester method
+# Tests that the hash content method functions properly
 def test_hash_content():
     def hash_unzip(f):
         z = zipfile.ZipFile(f)
@@ -166,8 +165,8 @@ def test_hash_content():
     for f in [file5, file6]:
         assert requester.hash_content(f) == '06af3dfa1ad9a1cc56331efa5bbb41e4a1c7b48e'
 
-#Requester method
-#Error checks the hash_content method with non-bytes input
+# Requester method
+# Error checks the hash_content method with non-bytes input
 def error_check_hash_content():
     file1 = None
     file2 = 23
@@ -177,8 +176,8 @@ def error_check_hash_content():
         with pytest.raises(InvalidInputError):
             requester.hash_content(f)
 
-#Requester method
-#Tests that the subpaths method functions properly
+# Requester method
+# Tests that the subpaths method functions properly
 def test_subpaths():
     url1 = 'http://reddit.com/r/all'
     url2 = 'http://reddit.com/r/all/'
@@ -194,7 +193,7 @@ def test_subpaths():
         subpaths = requester.subpaths(url)
         assert subpaths == []
 
-#Requester method
+# Requester method
 
 def error_check_subpaths():
     url1 = None
@@ -207,12 +206,12 @@ def error_check_subpaths():
             requester.subpaths(url)
 
 def test_purity():
-    purity1 = requester.purity(['r', 'all'])
-    purity2 = requester.purity(['u', 'capshockey', 'submitted'])
-    purity3 = requester.purity(['2018', '06', 'iptv-m3u-sport'])
-    purity4 = requester.purity(['bqxon'])
-    purity5 = requester.purity(requester.subpaths('http://www.freshiptv.com/free-cccam-servers-world-cup'))
-    purity6 = requester.purity([])
+    purity1 = requester.purity('http://reddit.com/r/all')
+    purity2 = requester.purity('http://reddit.com/u/capshockey/submitted')
+    purity3 = requester.purity('http://reddit.com/2018/06/iptv-m3u-sport')
+    purity4 = requester.purity('http://reddit.com/bqxon')
+    purity5 = requester.purity('http://www.freshiptv.com/free-cccam-servers-world-cup')
+    purity6 = requester.purity('http://reddit.com')
 
     assert purity1 == 100
     assert purity2 == 100
@@ -280,28 +279,28 @@ def error_check_phrases():
         with pytest.raises(InvalidUrlError):
             requester.phrases(url)
 
-#requester method
-#checks the return of the evaluate stream method 
+# requester method
+# checks the return of the evaluate stream method 
 def test_evaluate_stream():
-    url1 = 'http://devcon101.com:8080/live/alican/10062018/33.ts' #doesn't work
-    url2 = 'http://trexiptv.pointto.us:8000/live/spiderbox/c7eornHc3w/956.ts' #works
-    url3 = 'http://54.37.255.204:9977/live/Rodriguez/Rodriguez/24720.ts' #works sometimes
-    url4 = 'http://world-ipsat.com:1155/live/sultan/sultan2018/5209.ts' #works
-    url5 = 'http://217.182.173.184:8000/live/micha/micha/492.ts' #doesn't work
+    url1 = 'http://devcon101.com:8080/live/alican/10062018/33.ts' # doesn't work
+    url2 = 'http://trexiptv.pointto.us:8000/live/spiderbox/c7eornHc3w/956.ts' # works
+    url3 = 'http://54.37.255.204:9977/live/Rodriguez/Rodriguez/24720.ts' # works sometimes
+    url4 = 'http://world-ipsat.com:1155/live/sultan/sultan2018/5209.ts' # works
+    url5 = 'http://217.182.173.184:8000/live/micha/micha/492.ts' # doesn't work
     for url in [url1, url2, url3, url4, url5]:
         requester.evaluate_stream(url)
 
 
-#url mutator method
-#checks the return of the reduce method
+# url mutator method
+# checks the return of the reduce method
 def test_reduce():
     url1 = um.reduce('http://reddit.com/')
     url2 = um.reduce('http://reddit.com')
 
     assert url1 == url2
 
-#url mutator method
-#error checks the reduce method
+# url mutator method
+# error checks the reduce method
 def error_check_reduce():
     url1 = None
     url2 = 23
@@ -403,13 +402,13 @@ def error_check_remove_schema():
             um.remove_schema(url)
 
 def test_prepare():
-    url1 = um.prepare('http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640')
-    url2 = um.prepare('http://www.s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640/')
-    url3 = um.prepare('http://192.68.132.1:800')
-    url4 = um.prepare('http://192.68.132.1:400')
-    url5 = um.prepare('http://www.soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
-    url6 = um.prepare('http://soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
-    url7 = um.prepare('http://reddit.com')
+    url1 = um.prepare_netloc('http://s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640')
+    url2 = um.prepare_netloc('http://www.s4.bossna-caffe.com:80/hls/1200.m3u8?channelId=1200&deviceMac=00:1A:79:3A:2D:B9&uid=35640/')
+    url3 = um.prepare_netloc('http://192.68.132.1:800')
+    url4 = um.prepare_netloc('http://192.68.132.1:400')
+    url5 = um.prepare_netloc('http://www.soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
+    url6 = um.prepare_netloc('http://soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8')
+    url7 = um.prepare_netloc('http://reddit.com')
 
     assert url1 == url2 == 'http://s4.bossna-caffe.com'
     assert url3 == url4 == 'http://192.68.132.1'
@@ -424,10 +423,10 @@ def error_check_prepare():
     urls = [url1, url2, url3, url4]
     for url in urls:
         with pytest.raises(InvalidUrlError):
-            um.prepare(url)
+            um.prepare_netloc(url)
 
-#url mutator method method
-#checks the return of the partial method
+# url mutator method method
+# checks the return of the partial method
 def test_partial():
     host = 'https://www.reddit.com'
     url1 = um.partial('//www.reddit.com', host)
@@ -445,8 +444,8 @@ def test_partial():
     assert url6 == 'https://reddit.com/r/all'
     assert url7 == 'http://reddit.com/r/all'
 
-#url mutator method
-#error checks the partial method
+# url mutator method
+# error checks the partial method
 def error_check_partial():
     host = 'https://www.reddit.com'
     url1 = None
@@ -460,8 +459,8 @@ def error_check_partial():
         with pytest.raises(InvalidHostError):
             um.partial(host, url)
 
-#url mutator method
-#checks the return of the phish method
+# url mutator method
+# checks the return of the phish method
 def test_phish():
     url1 = um.phish('http://198.255.114.218:8000/get.php?username=j9&password;=j9&type;=m3u')
     url2 = um.phish('http://iptv.alkaicerteams.com:8080/get.php?username=alkaicer_66m62772&password;='
@@ -473,8 +472,8 @@ def test_phish():
     assert url3 == 'http://www.reddit.com/abc;def'
     assert url4 == 'http://iptvurllist.com/upload/file/2016-03-27IPTV%20Italy%20Channels%20url%20Links.m3u'
 
-#url mutator method
-#error checks the phish method
+# url mutator method
+# error checks the phish method
 def error_check_phish():
     url1 = None
     url2 = 23
@@ -483,8 +482,8 @@ def error_check_phish():
         with pytest.raises(InvalidInputError):
             um.phish(url)
 
-#url mutator method
-#checks the return of the expand method
+# url mutator method
+# checks the return of the expand method
 def test_expand():
     url1 = um.expand('https://www.reddit.com')
     url2 = um.expand('https://bit.ly/1f3xnd9')  # https://www.reddit.com/r/all
@@ -499,8 +498,8 @@ def test_expand():
     assert url5 == 'http://163.172.51.84:25461/live/superiptv1/superiptv111/21523.ts'
     assert requester.host(url6) == 'https://doc-10-50-docs.googleusercontent.com'
 
-#url mutator method
-#error checks the expand method
+# url mutator method
+# error checks the expand method
 def error_check_expand():
     url1 = None
     url2 = 23
@@ -525,8 +524,8 @@ def test_reduce_queries():
     assert url5 == 'https://www.list-iptv.com/search?updated-max=2018-03-20T23:52:00%2B01:00'
     assert url6 == 'https://www.list-iptv.com/search/iptv%20playlist%202018?updated-max=2018-07-06T13:36:00%2B02:00'
 
-#Crawler method
-#Error checking for the unzip method
+# Crawler method
+# Error checking for the unzip method
 def error_check_unzip():
     crawler = Crawler()
     request1 = None
@@ -538,8 +537,8 @@ def error_check_unzip():
         with pytest.raises(InvalidRequestError):
             crawler.unzip(request)
 
-#Queue method
-#Checks that the enqueue methods works correctly by using the size method
+# Queue method
+# Checks that the enqueue methods works correctly by using the size method
 def test_enqueue():
     q = Queue()
     q.enqueue(1)
@@ -550,8 +549,8 @@ def test_enqueue():
     q.enqueue(8)
     assert q.size() == 5
 
-#Queue method
-#Checks the dequeue methods work correctly by checking its return
+# Queue method
+# Checks the dequeue methods work correctly by checking its return
 def test_dequeue():
     q = Queue()
     q.enqueue(1)
@@ -574,8 +573,8 @@ def test_dequeue():
         order.append(q.dequeue())
     assert order == [3, 4, 5, 6]
 
-#Queue method
-#Error checks the dequeue method
+# Queue method
+# Error checks the dequeue method
 def error_check_dequeue():
     q = Queue()
     with pytest.raises(EmptyQueueError):
@@ -585,8 +584,8 @@ def error_check_dequeue():
     with pytest.raises(EmptyQueueError):
         q.dequeue()
 
-#Queue method
-#Checks the return of the peek method
+# Queue method
+# Checks the return of the peek method
 def test_peek():
     q = Queue()
     q.enqueue(1)
@@ -608,304 +607,219 @@ def error_check_peek():
         with pytest.raises(EmptyQueueError):
             q.peek()
 
-#Database method
-#Tests the return of the document_from_url method, which should not be null
-def test_document_from_netloc():
-    client = MongoClient(host='172.25.12.109', port=27017)
-    db = client['document_from_url']
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://www.reddit.com/r/all'
-    url3 = 'https://www.reddit.com/r/gifs'
-    url4 = 'https://www.reddit.com/r/aww'
-    for url in [url1, url2, url3, url4]:
-        db.posts.insert_one({'Network location': url})
-    for url in [url1, url2, url3, url4]:
-        assert database.document_from_url(db, url)['Network location'] == url
-    database.delete(db)
-
-#Database method
-#Error checks the document_from_url method for the InvalidUrlError when an invalid url is given as input
-def error_check_document_from_netloc_with_invalid_url():
-    visitor = Visitor('document_from_netloc_with_invalid_url')
-    for invalid in [[], 0, 'fat', set()]:
-        with pytest.raises(InvalidUrlError):
-            database.document_from_url(visitor.database(), invalid)
-    database.delete(visitor.database())
-
-#Visitor method
-#Error checks the document_from_url method for the MultipleUrlsInDatabaseError, which is raised when multiple cursors are returned
-def error_check_document_from_netloc_with_multiple_matching_url_entries():
-    client = MongoClient(host='172.25.12.109', port=27017)
-    db = client['multiple_matching_netloc_entries']
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://www.reddit.com/r/all'
-    url3 = 'https://www.reddit.com'
-    url4 = 'https://www.reddit.com/r/all'
-    for url in [url1, url2, url3, url4]:
-        db.posts.insert_one({'Network location': url})
-
-    for url in [url1, url2, url3, url4]:
-        with pytest.raises(MultipleUrlsInDatabaseError):
-            database.document_from_url(db, url)
-    database.delete(db)
-
-#Visitor method
-#Error checks the initialization of the visitor class, which takes a string as input
-def error_check_init_visitor():
-    for invalid in [[], 0, None, set()]:
-        with pytest.raises(InvalidInputError):
-            Visitor(invalid)
-
-def test_visit_url():
-    visitor = Visitor('visit_url')
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://www.reddit.com/r/all'
-    url3 = 'https://www.reddit.com/r/gifs'
-    url4 = 'https://www.reddit.com/r/aww'
-
-    for t in [(url1, None), (url2, url1), (url3, url1), (url4, url2)]:
-        visitor.visit_url(*t)
-
-    db = visitor.database()
-
-    for url in [url1, url2, url3]:
-        data = (db.posts.find({'url1': url}))
-        assert data is not None
-    database.delete(visitor.database())
-
-def error_check_visit_url_with_invalid_inputs():
-    visitor = Visitor('visited_with_invalid_inputs')
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://www.reddit.com/r/all'
-    url3 = 'https://www.reddit.com/r/gifs'
-    url4 = 'https://www.reddit.com/r/aww'
-
-    for t in [(url1, None), (url2, url1), (url3, url1), (url4, url2)]:
-        for invalid in [[], 0, 'fat', 'www.reddit.com']:
-            with pytest.raises(InvalidUrlError):
-                visitor.visit_url(invalid, t[1])
-            with pytest.raises(InvalidUrlError):
-                visitor.visit_url(t[0], invalid)
-    database.delete(visitor.database())
-
-def error_check_visit_url_with_url_in_database():
-    visitor = Visitor('visit_url_with_url_in_database')
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://www.reddit.com/r/all'
-    url3 = 'https://www.reddit.com'
-    url4 = 'https://www.reddit.com/r/all'
-    visitor.visit_url(url1, None)
-    visitor.visit_url(url2, None)
-
-    for t in [(url3, url1), (url4, url3)]:
-        with pytest.raises(UrlPresentInDatabaseError):
-            visitor.visit_url(*t)
-    database.delete(visitor.database())
-
-def test_parent_from_url():
-    visitor = Visitor('parent_from_url')
-    url1 = 'https://www.reddit.com'
-    url2 = 'https://www.reddit.com/r/all'
-    url3 = 'https://www.reddit.com/r/gifs'
-    url4 = 'https://www.reddit.com/r/aww'
-    for t in [(url1, None), (url2, url1), (url3, url1), (url4, url2)]:
-        visitor.visit_url(*t)
-
-    for t in [(url1, None), (url2, url1), (url3, url1), (url4, url2)]:
-        parent = visitor.parent_of_url(t[0])
-        assert parent == t[1]
-    database.delete(visitor.database())
-
-def error_check_parent_from_url_with_invalid_url():
-    visitor = Visitor('parent_from_url_with_invalid_url')
-    for invalid in [[], 0, 'fat', set()]:
-        with pytest.raises(InvalidUrlError):
-            visitor.parent_of_url(invalid)
-    database.delete(visitor.database())
-
-#Streamer method
-#Error checks the initialization of the streamer class, which takes a string as input
+# Streamer method
+# Error checks the initialization of the streamer class, which takes a string as input
 def error_check_init_streamer():
     for invalid in [[], 0, None, set()]:
         with pytest.raises(InvalidInputError):
             Streamer(invalid)
 
-#Streamer method
-#Tests that the add_to_database_by_netloc method functions properly
-def test_add_to_document_by_netloc():
-    streamer = Streamer('test_update_working_link')
+# Streamer method
+# Checks that the document_from_ip_address method functions properly
+def test_document_from_ip_address():
+    streamer = Streamer('test_document_from_ip_address')
     host = 'http://list-iptv.com'
     url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
     url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
     url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
     for url in [url1, url2, url3]:
-        netloc = um.prepare(url)
+        netloc = um.prepare_netloc(url)
         ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2]
-        streamer.add_to_database_by_netloc(netloc, ip_addresses, host, None)
-        doc = streamer.database().posts.find({'Network location': netloc})[0]
+        for ip_address in ip_addresses:
+            data = {
+                'ip_address': ip_address,
+                'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
+            }
+            streamer.database().inventory.insert(data)
+            doc = streamer.document_from_ip_address(ip_address)
+            assert doc['ip_address'] == ip_address
+            assert doc['network_locations'] == [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
 
-        assert doc['Network location'] == netloc
-        assert doc['IP addresses'] == ip_addresses
-        assert doc['Linked by'] == [host]
-        assert doc['Working link'] is None
+    streamer.delete()
 
-    database.delete(streamer.database())
-
-#Streamer method
-#Error checks the add_to_database_by_netloc method with invalid urls
-def error_check_add_to_document_by_netloc_with_invalid_urls():
-    streamer = Streamer('error_check_add_to_document_by_netloc_with_invalid_urls')
-    ip_addresses = ['192.168.56.1']
-    valid = 'http://reddit.com/r/all'
-    for invalid in [[], 0, None, set(), 'www.reddit.com']:
-        with pytest.raises(InvalidUrlError):
-            streamer.add_to_database_by_netloc(invalid, ip_addresses, valid, None)
-        with pytest.raises(InvalidUrlError):
-            streamer.add_to_database_by_netloc(valid, ip_addresses, invalid, None)
-
-#Streamer method
-#Error checks the add_to_database_by_netloc with invalid ip addresses
-def error_check_add_to_document_by_netloc_with_invalid_ip_address():
-    streamer = Streamer('error_check_add_to_document_by_netloc_with_invalid_ip_addresses')
-    netloc = 'http://reddit.com'
-    host = 'http://list-iptv.com'
-    for invalid in [['182.156.75', '192.314313.155.5'], ['192.168.68.1', '192.168.56.1.1.1']]:
+# Streamer method
+# Error checks document_from_ip_address with an invalid IP address
+def error_check_document_ip_address_with_invalid_ips():
+    streamer = Streamer('error_check_document_ip_address_with_invalid_ip')
+    for invalid in ['192.68.90.1.1', '1456.2435.5425.788', 'fat cat', 'totally not an ip address']: # invalid IP addresses
         with pytest.raises(InvalidInputError):
-            streamer.add_to_database_by_netloc(netloc, invalid, host, None)
+            streamer.document_from_ip_address(invalid)
 
-#Streamer method
-#Checks that the update_working_link method functions properly
-def test_update_working_link():
-    streamer = Streamer('test_update_working_link')
-    host = 'http://list-iptv.com'
-    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
-    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
-    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
-    url4 = 'http://176.31.226.149:25461/live/testest/testest/339.ts'
-    url5 = 'http://145.239.108.17:6500/live/36HzfHlJse/QWVCdutSZL/4429.ts'
+# Streamer method
+# Error checks document_from_ip_address when there are multiple matching IP addresses in the database
+def error_check_document_from_ip_address_with_multiple_matching_ips():
+    streamer = Streamer('error_check_document_from_ip_address_with_multiple_matching_ips')
+    host = 'http://reddit.com'
+    netloc = 'http://facebook.com'
+    ip_address = '192.68.13.12'
+    for i in range(3):
+        data = {
+            'ip_address': ip_address,
+            'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
+        }
+        streamer.database().inventory.insert(data)
+    with pytest.raises(MultipleMatchingIPsInDatabaseError):
+        streamer.document_from_ip_address(ip_address)
 
-    for url in [url1, url2, url3, url4, url5]:
-        streamer.add_to_stream(url, host)
+    streamer.delete()
 
-    for url in [url1, url2, url3, url4, url5]:
-        netloc = um.prepare(url)
-        doc = database.document_from_url(streamer.database(), netloc)
-        streamer.update_working_link(netloc, True, doc)
-        doc = database.document_from_url(streamer.database(), netloc)
-        assert doc['Network location'] == netloc
-        assert doc['Working link'] is True
-        assert doc['Linked by'] == [host]
+# Streamer method
+# Tests that the entry_from_netloc method functions properly
+def test_entry_from_netloc():
+    streamer = Streamer('test_entry_from_netloc')
+    host = 'http://ramalin.com'
+    netloc1 = 'http://gameriptv.com'
+    netloc2 = 'http://164.132.136.176'
+    netloc3 = 'http://31.132.0.66'
+    netloc4 = 'http://reddit.com'
+    netloc5 = 'http://facebook.com'
+    for netloc in [netloc1, netloc2, netloc3]:
+        ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2]
+        for ip_address in ip_addresses:
+            data = {
+                'ip_address': ip_address,
+                'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
+            }
+            streamer.database().inventory.insert(data)
+            doc = streamer.document_from_ip_address(ip_address)
+            entry = streamer.entry_from_netloc(doc, netloc)
+            assert entry is not None
+            assert entry['network_location'] == netloc
+            assert entry['linked_by'] == [host]
+            assert entry['working_link'] is True
+            assert streamer.entry_from_netloc(doc, netloc4) is None
+            assert streamer.entry_from_netloc(doc, netloc5) is None
 
-    database.delete(streamer.database())
+    streamer.delete()
 
-#Streamer method
-#Error checks the update_working_link method with invalid urls
-def error_check_update_working_link_with_invalid_url():
-    streamer = Streamer('error_check_update_working_link_with_invalid_url')
-    for invalid in [[], 0, None, set(), 'www.reddit.com']:
+# Streamer method
+# Error checks the entry_from_netloc method with a null document
+def error_check_entry_from_netloc_with_null_doc():
+    streamer = Streamer('error_check_entry_from_netloc_with_null_doc')
+    netloc = 'http://reddit.com'
+    with pytest.raises(InvalidInputError):
+        streamer.entry_from_netloc(None, netloc)
+
+# Streamer method
+# Error checks the entry_from_netloc method with invalid urls
+def error_check_entry_from_netloc_with_invalid_urls():
+    streamer = Streamer('error_check_entry_from_netloc_with_invalid_urls')
+    doc = {}
+    for invalid in [[], set(), 0, 'www.reddit.com']:
         with pytest.raises(InvalidUrlError):
-            streamer.update_working_link(invalid, True, None)
+            streamer.entry_from_netloc(doc, invalid)
 
-#Streamer method
-#Error checks the update_working_links method with a None document
-def error_check_update_working_link_with_none_document():
-    streamer = Streamer('error_check_update_working_link_with_none_document')
-    db = streamer.database()
+# Streamer method
+# Tests that the add_to_database_by_ip_address method functions properly when adding an ip address that has not yet occurred
+def test_add_to_database_by_ip_address():
+    streamer = Streamer('test_add_to_database_by_ip_address')
+    host = 'http://list-iptv.com'
     url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
     url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
     url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
     for url in [url1, url2, url3]:
-        netloc = um.prepare(url)
-        with pytest.raises(UrlNotInDatabaseError):
-            streamer.update_working_link(netloc, None, database.document_from_url(db, netloc))
+        netloc = um.prepare_netloc(url)
+        ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2]
+        for ip_address in ip_addresses:
+            streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address), ip_address, netloc, host, None)
+            doc = streamer.document_from_ip_address(ip_address)
 
-#Streamer method
-#Tests that the update_linked_by method functions properly
-def test_update_linked_by():
-    streamer = Streamer('test_update_linked_by')
-    db = streamer.database()
+            assert doc['ip_address'] == ip_address
+            for entry in doc['network_locations']:
+                assert entry['network_location'] == netloc
+
+    streamer.delete()
+
+# Streamer method
+# Tests that the add_to_database_by_ip_address method functions properly when adding an ip address already present in the database, and
+# the netloc is not currently present in the document
+def test_add_to_document_by_ip_address_with_netloc_not_in_document():
+    streamer = Streamer('test_add_to_document_by_ip_address_with_netloc_not_in_document')
+    host = 'http://list-iptv.com'
+    url1 = 'http://62.210.245.19'
+    url2 = 'http://clientportalpro.com'
+    url3 = 'http://ndasat.pro'
+    for url in [url1, url2, url3]:
+        ip_address = '192.168.32.1'
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address), ip_address, url, host, True)
+
+    doc = streamer.document_from_ip_address(ip_address)
+    assert doc['ip_address'] == ip_address
+    assert doc['network_locations'] == [
+        SON([('network_location', url1), ('linked_by', [host]), ('working_link', True)]),
+        SON([('network_location', url2), ('linked_by', [host]), ('working_link', True)]),
+        SON([('network_location', url3), ('linked_by', [host]), ('working_link', True)])
+    ]
+
+    streamer.delete()
+    
+# Streamer method
+# Tests that the add_to_database_by_ip_address method functions properly when adding an ip address and network location already present 
+# in the database, and the host is not currently present in the linked_by of the document
+def test_add_to_document_by_ip_address_with_host_not_in_linked_by():
+    streamer = Streamer('test_add_to_document_by_ip_address_with_host_not_in_linked_by')
+    netloc = 'http://reddit.com'
     host1 = 'http://list-iptv.com'
     host2 = 'http://ramalin.com'
-    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
-    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
-    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
-    url4 = 'http://176.31.226.149:25461/live/testest/testest/339.ts'
-    url5 = 'http://145.239.108.17:6500/live/36HzfHlJse/QWVCdutSZL/4429.ts'
+    host3 = 'http://m3uliste.com'
+    host4 = 'http://list-iptv.com'
+    ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2]
+    for ip_address in ip_addresses:
+        for host in [host1, host2, host3, host4]:
+            streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address), ip_address, netloc, host, True)
+        doc = streamer.document_from_ip_address(ip_address)
+        assert doc['ip_address'] == ip_address
+        assert doc['network_locations'] == [
+            SON([('network_location', netloc), ('linked_by', [host1, host2, host3]), ('working_link', True)])
+        ]
 
-    for url in [url1, url2, url3, url4, url5]:
-        netloc = um.prepare(url)
-        streamer.add_to_stream(netloc, host1)
-        doc1 = database.document_from_url(db, netloc)
-        streamer.update_linked_by(netloc, host2, doc1)
-        doc2 = database.document_from_url(db, netloc)
+    streamer.delete()
 
-        assert doc1['Linked by'] == [host1]
-        assert doc2['Linked by'] == [host1, host2]
-
-#Streamer method
-#Error checks the update_linked_by method with invalid urls
-def error_check_update_linked_by_with_invalid_urls():
-    streamer = Streamer('error_check_update_linked_by_with_invalid_url')
-    valid = 'http://reddit.com/r/all'
-    for invalid in [[], 0, None, set(), 'www.reddit.com']:
-        with pytest.raises(InvalidUrlError):
-            streamer.update_linked_by(invalid, valid, None)
-        with pytest.raises(InvalidUrlError):
-            streamer.update_linked_by(valid, invalid, None)
-
-#Streamer method
-#Error checks the update_linked_by method with a None document
-def error_check_update_linked_by_with_none_document():
-    streamer = Streamer('error_check_update_linked_by_with_none_document')
-    db = streamer.database()
+# Streamer method
+# Test that the add_to_document_by_ip_address correctly updates the working_link status of a netloc at an ip_address
+def test_update_working_link_of_add_to_document_by_ip_address():
+    streamer = Streamer('test_update_working_link')
+    netloc1 = 'http://reddit.com'
+    netloc2 = 'http://facebook.com'
+    netloc3 = 'http://ramalin.com'
     host = 'http://list-iptv.com'
-    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
-    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
-    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
-    for url in [url1, url2, url3]:
-        netloc = um.prepare(url)
-        with pytest.raises(UrlNotInDatabaseError):
-            streamer.update_linked_by(netloc, host, database.document_from_url(db, netloc))
+    ip_address1 = '192.68.12.1'
+    ip_address2 = '192.68.12.2'
+    ip_address3 = '192.68.12.3'
+    ip_address4 = '192.68.12.4'
+    ip_address5 = '192.68.12.5'
+    for netloc in [netloc1, netloc2, netloc3]:
+        # None to True
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address1), ip_address1, netloc, host, None)
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address1), ip_address1, netloc, host, True)
+        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address1), netloc)
+        assert efn['working_link'] is True
+        # False to True
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address2), ip_address2, netloc, host, False)
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address2), ip_address2, netloc, host, True)
+        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address2), netloc)
+        assert efn['working_link'] is True
+        # None to False
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address3), ip_address3, netloc, host, None)
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address3), ip_address3, netloc, host, False)
+        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address3), netloc)
+        assert efn['working_link'] is False
+        # Not False to True
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address4), ip_address4, netloc, host, True)
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address4), ip_address4, netloc, host, False)
+        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address4), netloc)
+        assert efn['working_link'] is True
+        # Not None to False
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address5), ip_address5, netloc, host, False)
+        streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address5), ip_address5, netloc, host, None)
+        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address5), netloc)
+        assert efn['working_link'] is False
 
-#Streamer method
-#Tests that the add to stream method function properly when adding a network location to the database that has not yet appeared
-def test_add_to_stream_with_single_host():
-    streamer = Streamer('add_to_stream_with_single_host')
-    host = 'http://list-iptv.com'
-    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
-    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
-    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
-    url4 = 'http://176.31.226.149:25461/live/testest/testest/339.ts'
-    url5 = 'http://145.239.108.17:6500/live/36HzfHlJse/QWVCdutSZL/4429.ts'
-    for url in [url1, url2, url3, url4, url5]:
-        streamer.add_to_stream(url, host)
+    streamer.delete()
 
-    for url in [url1, url2, url3, url4, url5]:
-        assert database.document_from_url(streamer.database(), um.prepare(url)) is not None
-    database.delete(streamer.database())
-
-#Streamer method
-#Tests that the add to stream method function properly when a network location is added to the database with multiple hosts
-def test_add_to_stream_multiple_hosts():
-    host1 = 'http://list-iptv.com'
-    host2 = 'http://iptvurllist.com'
-    host3 = 'http://ramalin.com'
-    url1 = 'http://62.210.245.19:8000/live/testapp/testapp/2.ts'
-    url2 = 'http://clientportalpro.com:2500/live/VE5DWv4Ait/7KHLqRRZ9E/2160.ts'
-    url3 = 'http://ndasat.pro:8000/live/exch/exch/1227.ts'
-    url4 = 'http://145.239.108.17:6500/live/36HzfHlJse/QWVCdutSZL/4429.ts'
-    for url in [url1, url2, url3, url4]:
-        for host in [host1, host2, host3]:
-            streamer = Streamer('add_to_stream_with_multiple_hosts')
-            streamer.add_to_stream(url, host)
-        netloc = um.prepare(url)
-        doc = database.document_from_url(streamer.database(), netloc)
-        assert doc['Linked by'] == [host1, host2, host3]
-    database.delete(streamer.database())
-
-#tester method
-#A helper method that takes in a list of urls, creates a test helper for each url, and concatenates the streams found
-#at each url based on the inputted method
+# tester method
+# A helper method that takes in a list of urls, creates a test helper for each url, and concatenates the streams found
+# at each url based on the inputted method
 def crawler_helper(urls, method='check_for_files'):
     streams = set()
     for url in urls:
@@ -919,16 +833,17 @@ def crawler_helper(urls, method='check_for_files'):
         elif method is 'ref':
             r = requester.make_request(url)
             soup = BeautifulSoup(r.text, 'html.parser')
-            crawler.check_ref_urls(soup, r.url)
+            crawler.check_ref_urls(soup)
         elif method is 'crawl':
             crawler.crawl(url)
-        for post in crawler.get_streamer().database().posts.find():
-            streams.add(post['Network location'])
-        database.delete(crawler.get_streamer().database())
+        for post in crawler.get_streamer().database().inventory.find():
+            for netloc in post['network_locations']:
+                streams.add(netloc['network_location'])
+        crawler.streamer.delete()
     return streams
 
-#Crawler method
-#Tests that the crawler correctly parse m3us
+# Crawler method
+# Tests that the crawler correctly parse m3us
 def test_parse_with_m3u():
     url1 = um.expand('https://bit.ly/2t05257')
     url2 = 'https://www.dailyiptvlist.com/dl/pt-m3uplaylist-2018-06-11.m3u'
@@ -952,9 +867,9 @@ def test_parse_with_m3u():
     assert 'http://82.192.84.30' in streams
     assert 'http://streamer-cache.grnet.gr' in streams
 
-#Crawler method
-#Tests that hte crawler correctly parses m3us from download files
-#NOTE: all three of these files contain streams that do not have defined extensions
+# Crawler method
+# Tests that hte crawler correctly parses m3us from download files
+# NOTE: all three of these files contain streams that do not have defined extensions
 def test_parse_with_download():
     url1 = 'http://173.56.74.197:9981/playlist/channels'
     url2 = 'http://125.130.197.49:9981/playlist'
@@ -970,15 +885,15 @@ def test_parse_with_download():
     assert 'http://xtv.satarabia.com' in streams
     assert 'http://164.132.200.17' in streams
 
-#Crawler method
-#Tests that the crawler correctly parses m3us from zip files
+# Crawler method
+# Tests that the crawler correctly parses m3us from zip files
 def test_parse_with_zip():
     url1 = 'http://www.mediafire.com/file/opkx06qikkxetya/IPTV-Espa%C3%B1a-M3u-Playlist-Update-17-12-2017.zip'
     url2 = 'https://www.mediafire.com/file/mjvk5vrarb39q8e/IPTV-Turkish-M3u-Channels-Update-04-12-2017.zip'
     url3 = 'https://www.colorado.edu/conflict/peace/download/peace_treatment.ZIP'
     url4 = 'http://download1586.mediafire.com/zat78d8fdnkg/0dpgto94u7q74r4/IPTV-M3u-Sport-All-Channels-List-17-12-2017.zip'
-    url5 = 'http://www.mediafire.com/file/bu19timjoao110c/IPTV-Espa%C3%B1a-M3u-Playlist-Update-12-12-2017.zip' #works with utf-8 is none
-    url6 = 'http://www.mediafire.com/file/rrpvrj0rdgealj4/IPTV-Turk-M3u-Playlist-Update-12-12-2017.zip' #same thing
+    url5 = 'http://www.mediafire.com/file/bu19timjoao110c/IPTV-Espa%C3%B1a-M3u-Playlist-Update-12-12-2017.zip' # works with utf-8 is none
+    url6 = 'http://www.mediafire.com/file/rrpvrj0rdgealj4/IPTV-Turk-M3u-Playlist-Update-12-12-2017.zip' # same thing
     urls = [url1, url2, url3, url4, url5, url6]
     streams = crawler_helper(urls)
 
@@ -993,12 +908,12 @@ def test_parse_with_zip():
     assert 'http://globiptv.com' in streams
     assert 'http://biloiptv.eu.com' in streams
 
-#Crawler method
-#Tests that the crawler correctly opens m3u files it finds while parsing an m3u file
+# Crawler method
+# Tests that the crawler correctly opens m3u files it finds while parsing an m3u file
 def test_parse_text_from_parse():
     url1 = 'http://www.mediafire.com/file/35txqby0vtpzvva/IPTV+World+Mix+M3u+.Update+All+Channels+21-11-2017.m3u'
     url2 = 'http://dwstream4-lh.akamaihd.net/i/dwstream4_live@131329/master.m3u8'
-    url3 = 'http://theblaze.global.ssl.fastly.net/live/blaze-dvr/master.m3u8'  #also contains relatives
+    url3 = 'http://theblaze.global.ssl.fastly.net/live/blaze-dvr/master.m3u8'  # also contains relatives
     urls = [url1, url2, url3]
     streams = crawler_helper(urls)
 
@@ -1011,8 +926,8 @@ def test_parse_text_from_parse():
     assert 'http://dwstream4-lh.akamaihd.net' in streams
     assert 'http://theblaze.global.ssl.fastly.net' in streams
 
-#Crawler method
-#Tests that the crawler correctly opens relative urls found while parsing an m3u file
+# Crawler method
+# Tests that the crawler correctly opens relative urls found while parsing an m3u file
 def test_parse_with_relatives():
     url1 = 'http://soledge7.dogannet.tv/S1/HLS_LIVE/tv2/1000/prog_index.m3u8'  # ts files only
     url2 = 'https://ucankus-live.cdnnew.com/ucankus/ucankus.m3u8'  # ts files only
@@ -1027,16 +942,16 @@ def test_parse_with_relatives():
     assert 'http://publish.thewebstream.co' in streams
     assert 'http://bqgsd19q.rocketcdn.com' in streams
 
-#Crawler method
-#Tests the crawler correctly finds and parses m3u and ts files in the text of a web page
+# Crawler method
+# Tests the crawler correctly finds and parses m3u and ts files in the text of a web page
 def test_text_urls():
-    url1 = 'http://iptvurllist.com/view_article.php?id=428-Iptv-France-Server-Playlist-Url-Link-m3u-29-07.html'  #ts
+    url1 = 'http://iptvurllist.com/view_article.php?id=428-Iptv-France-Server-Playlist-Url-Link-m3u-29-07.html'  # ts
     url2 = 'http://www.ramalin.com/iptv-russian-tv-channels-playlist-12-06-2018/'  # ts
-    url3 = 'https://www.dailyiptvlist.com/italy-iptv-m3u-playlist-download-14-jun-2018/'  #m3us
-    url4 = 'http://iptvsatlinks.blogspot.com/2018/06/russia-uk-usa-pak-m3u-bbc-itv-sky.html'  #ts
-    url5 = 'http://www.ramalin.com/poland-iptv-channels-playlist-07-06-2018/'  #ts segments
-    url6 = 'http://www.iptvm3u.com/2018/03/iptv-england-server-m3u-list-update-02.html' #ts
-    url7 = 'http://freeworldwideiptv.com/2018/06/19/germany-smart-tv-xbmc-iptv-m3u-playlist-19-06-2018/' #ts
+    url3 = 'https://www.dailyiptvlist.com/italy-iptv-m3u-playlist-download-14-jun-2018/'  # m3us
+    url4 = 'http://iptvsatlinks.blogspot.com/2018/06/russia-uk-usa-pak-m3u-bbc-itv-sky.html'  # ts
+    url5 = 'http://www.ramalin.com/poland-iptv-channels-playlist-07-06-2018/'  # ts segments
+    url6 = 'http://www.iptvm3u.com/2018/03/iptv-england-server-m3u-list-update-02.html' # ts
+    url7 = 'http://freeworldwideiptv.com/2018/06/19/germany-smart-tv-xbmc-iptv-m3u-playlist-19-06-2018/' # ts
     urls = [url1, url2, url3, url4, url5, url6, url7]
     streams = crawler_helper(urls, 'text')
 
@@ -1050,8 +965,8 @@ def test_text_urls():
     assert 'http://gigaiptv.tk' in streams
     assert 'http://145.239.205.121' in streams
 
-#Crawler method
-#Tests that the crawler correctly finds and parses m3u files from the referenced url of a webpage
+# Crawler method
+# Tests that the crawler correctly finds and parses m3u files from the referenced url of a webpage
 def test_ref_urls():
     url1 = 'https://cafe-tv.net/2018/06/iptv-m3u-sport-speciale-coupe-du-monde-russie-2018'
     url2 = 'https://freedailyiptv.com/usa-m3u-free-daily-iptv-list-18-06-2018'
@@ -1080,31 +995,23 @@ def url_mutator_tests():
 def queue_tests():
     return [test_enqueue, test_dequeue, error_check_dequeue, test_peek, error_check_peek]
 
-def database_tests():
-    return [test_document_from_netloc, error_check_document_from_netloc_with_invalid_url,
-            error_check_document_from_netloc_with_multiple_matching_url_entries]
-
-def visitor_tests():
-    return [error_check_init_visitor, test_visit_url, error_check_visit_url_with_invalid_inputs,
-            error_check_visit_url_with_url_in_database, test_parent_from_url, error_check_parent_from_url_with_invalid_url]
-
 def streamer_tests():
-    return [error_check_init_streamer, test_add_to_document_by_netloc, error_check_add_to_document_by_netloc_with_invalid_urls,
-            error_check_add_to_document_by_netloc_with_invalid_ip_address, test_update_working_link,
-            error_check_update_working_link_with_invalid_url,error_check_update_working_link_with_none_document,
-            test_update_linked_by, error_check_update_linked_by_with_invalid_urls, error_check_update_linked_by_with_none_document,
-            test_add_to_stream_with_single_host, test_add_to_stream_multiple_hosts]
+    return [error_check_init_streamer, test_document_from_ip_address, error_check_document_ip_address_with_invalid_ips,
+            error_check_document_from_ip_address_with_multiple_matching_ips, test_entry_from_netloc,
+            error_check_entry_from_netloc_with_null_doc, error_check_entry_from_netloc_with_invalid_urls,
+            test_add_to_database_by_ip_address, test_add_to_document_by_ip_address_with_netloc_not_in_document,
+            test_add_to_document_by_ip_address_with_host_not_in_linked_by]
 
 def crawler_tests():
     return [error_check_unzip, test_parse_with_m3u, test_parse_with_download, test_parse_with_zip, test_parse_text_from_parse,
             test_parse_with_relatives, test_text_urls, test_ref_urls]
 
 def get_tests():
-    return requester_tests() + url_mutator_tests() + queue_tests() + database_tests() + crawler_tests()
+    return requester_tests() + url_mutator_tests() + queue_tests() + crawler_tests()
 
 
 def test_runner():
-    for test in streamer_tests():
+    for test in crawler_tests():
         print(test.__name__)
         test()
 

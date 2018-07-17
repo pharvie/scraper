@@ -30,10 +30,13 @@ class InvalidNodeError(BaseError):
 class EmptyQueueError(BaseError):
     pass
 
-class UrlNotInDatabaseError(BaseError):
+class NetlocNotInDatabaseError(BaseError):
     pass
 
 class MultipleUrlsInDatabaseError(BaseError):
+    pass
+
+class MultipleMatchingIPsInDatabaseError(BaseError):
     pass
 
 class UrlPresentInDatabaseError(BaseError):
@@ -49,4 +52,7 @@ class StreamTimedOutError(BaseError):
     pass
 
 class InvalidStartUrlError(BaseError):
+    pass
+
+class MultipleMatchingHostsInLinkedByError(BaseError):
     pass

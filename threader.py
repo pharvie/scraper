@@ -16,7 +16,7 @@ class MyThread(threading.Thread):
 def create_threads():
     print('Threading...')
     thread1 = MyThread('http://freshiptv.com')
-    thread2 = MyThread('http://iptvsatlinks.blogspot.com')
+    thread2 = None
     thread3 = MyThread('https://cafe-tv.net')
     thread4 = MyThread('https://freedailyiptv.com')
     thread5 = MyThread('http://www.m3uliste.pw')
@@ -27,7 +27,14 @@ def create_threads():
     thread10 = MyThread('http://i-ptv.blogspot.com')
     thread11 = MyThread('https://pastebin.com/raw/M4q7YxPW', override_start_url_check=True, overridden_host='https://fluxustv.blogspot.com')
     thread12 = MyThread('https://www.iptvsource.com')
-    return[thread1]
+    thread13 = MyThread('https://iptvhits.blogspot.com')
+    thread14 = MyThread('http://www.iptvurls.com')
+    thread15 = MyThread('https://www.iptv4sat.com')
+    thread16 = MyThread('https://www.gratisiptv.com')
+    thread17 = MyThread('https://freeiptv.online')
+    thread18 = MyThread('https://skyiptv.online')
+    thread19 = MyThread('https://autoiptv.net')
+    return[thread4]
 
 def run_threads():
     threads = create_threads()
