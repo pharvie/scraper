@@ -42,15 +42,14 @@ def evaluate_stream(url):
             # (in this case, whatever the value of timeout is). When the timer runs out, both threads terminate and an
             # eventlet.timeout.Timeout error is raised. By wrapping the with statement in a with loop and catching the Timeout error,
             # a timeout for the request is effectively created.
-            try:
-                r = requests.get(url, stream=True) # request to a stream
-            except (ConnectionError, TooManyRedirects, ChunkedEncodingError): #non-timeout errors
-                return False
+            r = requests.get(url, stream=True) # request to a stream
+    except (ConnectionError, TooManyRedirects, ChunkedEncodingError): #non-timeout errors
+            return False
     except eventlet.timeout.Timeout: #catch the timeout if it occurs
-        raise StreamTimedOutError('%s timed out' % url) #raise the StreamTimedOutError, which will be handled differently than
-    #the boolean
-    if r: #if the request is valid
+        raise StreamTimedOutError('%s timed out' % url) #raise the StreamTimedOutError, which will be handled differently than a False
+    if r and r.ok: #if the request is valid
         if get_format(r) == 'stream': #if the content of the request is a stream
+            print('Working stream at %s' % url)
             return True #return True, found as stream
     return False
 
@@ -197,13 +196,13 @@ def get_format(r):
     except KeyError:
         pass
     else:
-        if re.search(regex['m3u_fmt'], f, re.IGNORECASE): #if it matches the content headings of an m3u
+        if re.search(regex['m3u-fmt'], f, re.IGNORECASE): #if it matches the content headings of an m3u
             return 'm3u'
-        if re.search(regex['zip_fmt'], f, re.IGNORECASE): #if it matches the content headings of a zip
+        if re.search(regex['zip-fmt'], f, re.IGNORECASE): #if it matches the content headings of a zip
             return 'zip'
-        if re.search(regex['html_fmt'], f, re.IGNORECASE): #if it matches the content headings of an html
+        if re.search(regex['html-fmt'], f, re.IGNORECASE): #if it matches the content headings of an html
             return 'html'
-        if re.search(regex['stream_fmt'], f, re.IGNORECASE): #if it matches the content headings of a stream
+        if re.search(regex['stream-fmt'], f, re.IGNORECASE): #if it matches the content headings of a stream
             return 'stream'
 
 """
@@ -224,16 +223,18 @@ def make_request(url):
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter) #I don't remember what these do
     session.mount('https://', adapter)
+    timeout = 25
     try:
-        r = requests.get(url, timeout=5, headers=headers) #make a request
-        #print(r.status_code)
-    except (ConnectionError, ReadTimeout, TooManyRedirects, ChunkedEncodingError): #except connection errors
+        with eventlet.Timeout(timeout):
+            r = requests.get(url, headers=headers) #make a request
+
+    except (ConnectionError, ReadTimeout, TooManyRedirects, ChunkedEncodingError, eventlet.timeout.Timeout) as e: #except connection errors
         pass
     else: #otherwise
         if r.status_code in [525, 526]: #these status codes are related to the cloudflare preventative bot net software
             scraper = cfscrape.create_scraper() #creates a scraper that can bypass cloudflare
             r = scraper.get(url) # makes a request through that scraper
-        if r.ok or re.search(regex['streams'], r.url, re.IGNORECASE): #if the status code of the request is valid
+        if r.ok: #if the status code of the request is valid
             return r #returns the request
 
 """
@@ -256,10 +257,8 @@ def internal(url, host):
         raise InvalidUrlError('Cannot define internal status of invalid url: ' + str(url))
     if not validate_url(host):
         raise InvalidUrlError('Cannot define internal status with invalid base: ' + str(host))
-    url = um.remove_identifier(url)
-    host = um.remove_identifier(host)
-    url_netloc = urlparse(url).netloc
-    host_netloc = urlparse(host).netloc
+    url_netloc = um.prepare_netloc(url)
+    host_netloc = um.prepare_netloc(host)
     return url_netloc == host_netloc
 
 """
@@ -283,3 +282,5 @@ def validate_url(url):
     if url is not None and isinstance(url, str) and validators.url(url):
         return True
     return False
+
+

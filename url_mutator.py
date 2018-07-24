@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 regex = regex.get()
 
 def reduce_queries(url):
-    for expression in ['max-results', 'by-date', 'start']:
+    for expression in ['max-results', 'by-date', 'start', 'updated-max', 'lost-password']:
         s = re.search(regex[expression], url)
         if s:
             url = url.replace(s.group(1), '')

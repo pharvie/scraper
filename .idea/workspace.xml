@@ -14,7 +14,8 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/scraper$writer.coverage" NAME="writer Coverage Results" MODIFIED="1530302286506" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$crawler.coverage" NAME="crawler Coverage Results" MODIFIED="1531777214241" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$graph.coverage" NAME="graph Coverage Results" MODIFIED="1531840319972" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$crawler.coverage" NAME="crawler Coverage Results" MODIFIED="1532031912083" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$method_tester.coverage" NAME="method_tester Coverage Results" MODIFIED="1527179974240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$fixer.coverage" NAME="fixer Coverage Results" MODIFIED="1528922603292" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$tree.coverage" NAME="tree Coverage Results" MODIFIED="1529344184160" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -25,8 +26,8 @@
     <SUITE FILE_PATH="coverage/scraper$my_threader.coverage" NAME="my_threader Coverage Results" MODIFIED="1529938041073" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$selenium.coverage" NAME="selenium Coverage Results" MODIFIED="1530036487753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$path_learner.coverage" NAME="path_learner Coverage Results" MODIFIED="1530125777101" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$tester.coverage" NAME="tester Coverage Results" MODIFIED="1531772977097" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$threader.coverage" NAME="threader Coverage Results" MODIFIED="1531777413721" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$tester.coverage" NAME="tester Coverage Results" MODIFIED="1532030384659" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$threader.coverage" NAME="threader Coverage Results" MODIFIED="1532440801239" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$tester__1_.coverage" NAME="tester  Coverage Results" MODIFIED="1530041410603" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$bit_learner.coverage" NAME="bit_learner Coverage Results" MODIFIED="1530126776217" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$my_requester.coverage" NAME="my_requester Coverage Results" MODIFIED="1529681387338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -42,17 +43,18 @@
     <SUITE FILE_PATH="coverage/scraper$database.coverage" NAME="database Coverage Results" MODIFIED="1531751057028" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$test_scraper.coverage" NAME="test_scraper Coverage Results" MODIFIED="1527253871887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$opener.coverage" NAME="opener Coverage Results" MODIFIED="1528470942987" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scraper$requester.coverage" NAME="requester Coverage Results" MODIFIED="1531777289593" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$test_cases.coverage" NAME="test_cases Coverage Results" MODIFIED="1532375162310" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scraper$requester.coverage" NAME="requester Coverage Results" MODIFIED="1532374943588" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$learner.coverage" NAME="learner Coverage Results" MODIFIED="1531338970504" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scraper$thread.coverage" NAME="thread Coverage Results" MODIFIED="1528898358499" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="tester.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tester.py">
+      <file leaf-file-name="test_cases.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test_cases.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="142">
-              <caret line="840" column="52" selection-start-line="840" selection-start-column="52" selection-end-line="840" selection-end-column="52" />
+            <state relative-caret-position="119">
+              <caret line="37" column="57" lean-forward="true" selection-start-line="37" selection-start-column="57" selection-end-line="37" selection-end-column="57" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -63,8 +65,32 @@
       <file leaf-file-name="database.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/database.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-86">
-              <caret line="160" selection-start-line="160" selection-end-line="160" />
+            <state relative-caret-position="296">
+              <caret line="198" column="85" lean-forward="true" selection-start-line="198" selection-start-column="85" selection-end-line="198" selection-end-column="85" />
+              <folding>
+                <element signature="e#0#24#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="crawler.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/crawler.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="51" column="12" selection-start-line="51" selection-start-column="12" selection-end-line="51" selection-end-column="130" />
+              <folding>
+                <element signature="e#0#22#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="threader.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/threader.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="267">
+              <caret line="86" column="5" selection-start-line="86" selection-start-column="5" selection-end-line="86" selection-end-column="5" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -75,8 +101,8 @@
       <file leaf-file-name="url_mutator.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/url_mutator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
-              <caret line="42" column="8" lean-forward="true" selection-start-line="42" selection-start-column="8" selection-end-line="42" selection-end-column="8" />
+            <state relative-caret-position="291">
+              <caret line="89" column="7" lean-forward="true" selection-start-line="89" selection-start-column="7" selection-end-line="89" selection-end-column="7" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -87,20 +113,8 @@
       <file leaf-file-name="regex.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/regex.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="15" column="42" lean-forward="true" selection-start-line="15" selection-start-column="42" selection-end-line="15" selection-end-column="42" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="crawler.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/crawler.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="190">
-              <caret line="83" column="50" lean-forward="true" selection-start-line="83" selection-end-line="84" />
-              <folding>
-                <element signature="e#0#22#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="272">
+              <caret line="16" column="79" selection-start-line="16" selection-start-column="79" selection-end-line="16" selection-end-column="79" />
             </state>
           </provider>
         </entry>
@@ -108,20 +122,8 @@
       <file leaf-file-name="exceptions.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/exceptions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="366">
-              <caret line="32" column="12" selection-start-line="32" selection-start-column="12" selection-end-line="32" selection-end-column="12" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="threader.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/threader.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="346">
-              <caret line="36" column="19" lean-forward="true" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="19" />
-              <folding>
-                <element signature="e#0#16#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="774">
+              <caret line="51" column="8" selection-start-line="51" selection-start-column="8" selection-end-line="51" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -129,8 +131,8 @@
       <file leaf-file-name="requester.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/requester.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="791">
-              <caret line="285" selection-start-line="285" selection-end-line="285" />
+            <state relative-caret-position="641">
+              <caret line="257" column="30" lean-forward="true" selection-start-line="257" selection-start-column="30" selection-end-line="257" selection-end-column="30" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -142,44 +144,38 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>netloc_entry</find>
-      <find>e</find>
-      <find>entry_at_netloc</find>
-      <find>E6</find>
-      <find>sstv</find>
-      <find>iptvhits</find>
-      <find>stream.yay</find>
-      <find>pastebin.+ from .+paste</find>
-      <find>crawling</find>
-      <find>True as it was previously False</find>
-      <find>bit.ly</find>
-      <find>Af</find>
-      <find>iptvtool.es</find>
-      <find>database.delete(</find>
-      <find>streamer.add_to_database_by_ip_address(ip_address</find>
-      <find>inventory</find>
-      <find>items</find>
-      <find>fullh</find>
-      <find>True</find>
-      <find>Working stream</find>
-      <find>vali</find>
-      <find>85.10</find>
-      <find>self.connec</find>
-      <find>known</find>
-      <find>managercw</find>
       <find>self.visited</find>
-      <find>Broken</find>
       <find>after</find>
       <find>http://mixbox.dyndns.tv</find>
+      <find>magnum</find>
+      <find>woz</find>
+      <find>wowza</find>
+      <find>Work</find>
+      <find>Broken</find>
+      <find>lostpassword</find>
       <find>Working</find>
+      <find>https://freedailyiptv.com/links/14-02-2018/Movies_Freedailyiptv.com.m3u</find>
+      <find>make_request</find>
+      <find>text</find>
+      <find>unzip</find>
+      <find>inventory</find>
+      <find>autoipt</find>
+      <find>test</find>
+      <find>ignore</find>
+      <find>um.remove_id</find>
+      <find>um.</find>
+      <find>Working stream at</find>
+      <find>remove_identi</find>
+      <find>add_to_database_by</find>
+      <find>requester.remove_identifier</find>
+      <find>thread\d+ = MyThread</find>
+      <find>self._db.time</find>
+      <find>self._db.self.time</find>
+      <find>self._db[self.time]</find>
+      <find>self._db.self._time</find>
+      <find>self._db.getCollection(self._time)</find>
     </findStrings>
     <replaceStrings>
-      <replace>crawler_helper</replace>
-      <replace>get_ref_urls</replace>
-      <replace>m3u</replace>
-      <replace>url</replace>
-      <replace>data()</replace>
-      <replace>hash_content</replace>
       <replace>parent</replace>
       <replace>data</replace>
       <replace>check_ref_urls</replace>
@@ -197,13 +193,19 @@
       <replace>runner.visited</replace>
       <replace>self.runner.visited</replace>
       <replace>runner.counter</replace>
-      <replace>um.remove_identifier</replace>
       <replace>#</replace>
       <replace>netloc</replace>
       <replace>entry_fr</replace>
       <replace>streamer.add_to_database_by_ip_address(streamer.document_from_ip_address(ip_address), ip_address</replace>
       <replace>entry_from_netloc</replace>
       <replace>posts</replace>
+      <replace>streams</replace>
+      <replace>requester.remove_id</replace>
+      <replace>um.remove_identifier</replace>
+      <replace>self._db.self.time</replace>
+      <replace>self._db[self.time]</replace>
+      <replace>self._db.getCollection(self._time)</replace>
+      <replace>self._collection</replace>
     </replaceStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -241,14 +243,17 @@
         <option value="$PROJECT_DIR$/writer.py" />
         <option value="$PROJECT_DIR$/learner.py" />
         <option value="$PROJECT_DIR$/m3uparser.py" />
-        <option value="$PROJECT_DIR$/exceptions.py" />
-        <option value="$PROJECT_DIR$/database.py" />
-        <option value="$PROJECT_DIR$/url_mutator.py" />
-        <option value="$PROJECT_DIR$/regex.py" />
+        <option value="$PROJECT_DIR$/graph.py" />
         <option value="$PROJECT_DIR$/tester.py" />
-        <option value="$PROJECT_DIR$/requester.py" />
-        <option value="$PROJECT_DIR$/threader.py" />
+        <option value="$PROJECT_DIR$/tests.py" />
+        <option value="$PROJECT_DIR$/exceptions.py" />
+        <option value="$PROJECT_DIR$/url_mutator.py" />
+        <option value="$PROJECT_DIR$/test_cases.py" />
+        <option value="$PROJECT_DIR$/regex.py" />
         <option value="$PROJECT_DIR$/crawler.py" />
+        <option value="$PROJECT_DIR$/requester.py" />
+        <option value="$PROJECT_DIR$/database.py" />
+        <option value="$PROJECT_DIR$/threader.py" />
       </list>
     </option>
   </component>
@@ -262,8 +267,8 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1694" />
-    <option name="y" value="-13" />
+    <option name="x" value="236" />
+    <option name="y" value="-8" />
     <option name="width" value="1936" />
     <option name="height" value="1056" />
   </component>
@@ -313,7 +318,7 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="database" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="graph" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="scraper" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -326,7 +331,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="C:\Users\pharvie\PycharmProjects\scraper\database.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/graph.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -351,7 +356,7 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="tester" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="test_cases" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="scraper" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -364,7 +369,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tester.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_cases.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -391,18 +396,18 @@
     </configuration>
     <list>
       <item itemvalue="Python.threader" />
-      <item itemvalue="Python.requester" />
-      <item itemvalue="Python.database" />
-      <item itemvalue="Python.tester" />
       <item itemvalue="Python.crawler" />
+      <item itemvalue="Python.graph" />
+      <item itemvalue="Python.test_cases" />
+      <item itemvalue="Python.requester" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.threader" />
+        <item itemvalue="Python.test_cases" />
         <item itemvalue="Python.requester" />
         <item itemvalue="Python.crawler" />
-        <item itemvalue="Python.tester" />
-        <item itemvalue="Python.database" />
+        <item itemvalue="Python.graph" />
       </list>
     </recent_temporary>
   </component>
@@ -420,20 +425,18 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1912" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="12" sideWeight="0.50104165" side_tool="true" weight="0.49734324" />
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="10" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49895832" visible="true" weight="0.49415517" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49895832" visible="true" weight="0.48459086" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.32943678" />
       <window_info content_ui="combo" id="Project" order="0" weight="0.10520833" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32943678" />
       <window_info anchor="right" id="SciView" order="4" weight="0.4546875" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -444,6 +447,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32943678" />
       <window_info anchor="right" id="Coverage" order="5" side_tool="true" />
     </layout>
   </component>
@@ -459,13 +463,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/threading.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
-          <caret line="916" selection-start-line="916" selection-end-line="916" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/namer.py" />
     <entry file="file://$PROJECT_DIR$/IPTV Arabic M3u Playlist Update 13-12-2017.m3u" />
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/zipfile.py">
@@ -496,13 +493,7 @@
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/urllib3/__init__.py" />
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/requests/__init__.py" />
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/urllib3/connectionpool.py" />
-    <entry file="file://$PROJECT_DIR$/my_queue.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="20" lean-forward="true" selection-start-line="4" selection-start-column="20" selection-end-line="4" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/my_queue.py" />
     <entry file="file://$PROJECT_DIR$/learner.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -615,24 +606,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/pymongo/collection.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="3316" selection-start-line="3316" selection-end-line="3316" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/pymongo/mongo_client.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
           <caret line="1317" selection-start-line="1317" selection-end-line="1317" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/re.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="172" selection-start-line="172" selection-end-line="172" />
         </state>
       </provider>
     </entry>
@@ -643,23 +620,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/regex.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="15" column="42" lean-forward="true" selection-start-line="15" selection-start-column="42" selection-end-line="15" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/url_mutator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="42" column="8" lean-forward="true" selection-start-line="42" selection-start-column="8" selection-end-line="42" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/pymongo/database.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="142">
@@ -667,37 +627,79 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tester.py">
+    <entry file="file://$PROJECT_DIR$/graph.py" />
+    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/pymongo/collection.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="840" column="52" selection-start-line="840" selection-start-column="52" selection-end-line="840" selection-end-column="52" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="341">
+          <caret line="3320" selection-start-line="3320" selection-end-line="3320" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/requester.py">
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/re.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="791">
-          <caret line="285" selection-start-line="285" selection-end-line="285" />
+        <state relative-caret-position="150">
+          <caret line="169" column="4" selection-start-line="169" selection-start-column="4" selection-end-line="169" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/url_mutator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="89" column="7" lean-forward="true" selection-start-line="89" selection-start-column="7" selection-end-line="89" selection-end-column="7" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/regex.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="79" selection-start-line="16" selection-start-column="79" selection-end-line="16" selection-end-column="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_cases.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="37" column="57" lean-forward="true" selection-start-line="37" selection-start-column="57" selection-end-line="37" selection-end-column="57" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/exceptions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="366">
-          <caret line="32" column="12" selection-start-line="32" selection-start-column="12" selection-end-line="32" selection-end-column="12" />
+        <state relative-caret-position="774">
+          <caret line="51" column="8" selection-start-line="51" selection-start-column="8" selection-end-line="51" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requester.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="641">
+          <caret line="257" column="30" lean-forward="true" selection-start-line="257" selection-start-column="30" selection-end-line="257" selection-end-column="30" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/crawler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="51" column="12" selection-start-line="51" selection-start-column="12" selection-end-line="51" selection-end-column="130" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/database.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-86">
-          <caret line="160" selection-start-line="160" selection-end-line="160" />
+        <state relative-caret-position="296">
+          <caret line="198" column="85" lean-forward="true" selection-start-line="198" selection-start-column="85" selection-end-line="198" selection-end-column="85" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
@@ -706,20 +708,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/threader.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="346">
-          <caret line="36" column="19" lean-forward="true" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="19" />
+        <state relative-caret-position="267">
+          <caret line="86" column="5" selection-start-line="86" selection-start-column="5" selection-end-line="86" selection-end-column="5" />
           <folding>
-            <element signature="e#0#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/crawler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="83" column="50" lean-forward="true" selection-start-line="83" selection-end-line="84" />
-          <folding>
-            <element signature="e#0#22#0" expanded="true" />
+            <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
