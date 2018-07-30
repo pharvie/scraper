@@ -666,7 +666,7 @@ def test_document_from_ip_address():
                 'ip_address': ip_address,
                 'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
             }
-            streamer.database().streams.insert(data)
+            streamer.collection().insert(data)
             doc = streamer.document_from_ip_address(ip_address)
             assert doc['ip_address'] == ip_address
             assert doc['network_locations'] == [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
@@ -680,24 +680,6 @@ def error_check_document_ip_address_with_invalid_ips():
     for invalid in ['192.68.90.1.1', '1456.2435.5425.788', 'fat cat', 'totally not an ip address']: # invalid IP addresses
         with pytest.raises(InvalidInputError):
             streamer.document_from_ip_address(invalid)
-
-# Streamer method
-# Error checks document_from_ip_address when there are multiple matching IP addresses in the database
-def error_check_document_from_ip_address_with_multiple_matching_ips():
-    streamer = Streamer('error_check_document_from_ip_address_with_multiple_matching_ips')
-    host = 'http://reddit.com'
-    netloc = 'http://facebook.com'
-    ip_address = '192.68.13.12'
-    for i in range(3):
-        data = {
-            'ip_address': ip_address,
-            'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
-        }
-        streamer.database().streams.insert(data)
-    with pytest.raises(MultipleEntriesInDatabaseError):
-        streamer.document_from_ip_address(ip_address)
-
-    streamer.delete()
 
 # Streamer method
 # Tests that the entry_from_netloc method functions properly
@@ -716,7 +698,7 @@ def test_entry_from_netloc():
                 'ip_address': ip_address,
                 'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
             }
-            streamer.database().streams.insert(data)
+            streamer.collection().insert(data)
             doc = streamer.document_from_ip_address(ip_address)
             entry = streamer.entry_from_netloc(doc, netloc)
             assert entry is not None
@@ -782,9 +764,9 @@ def test_add_to_document_by_ip_address_with_netloc_not_in_document():
     doc = streamer.document_from_ip_address(ip_address)
     assert doc['ip_address'] == ip_address
     assert doc['network_locations'] == [
-        SON([('network_location', url1), ('linked_by', [host]), ('working_link', True)]),
-        SON([('network_location', url2), ('linked_by', [host]), ('working_link', True)]),
-        SON([('network_location', url3), ('linked_by', [host]), ('working_link', True)])
+        SON([('network_location', url1), ('working_link', True)]),
+        SON([('network_location', url2), ('working_link', True)]),
+        SON([('network_location', url3), ('working_link', True)])
     ]
 
     streamer.delete()
@@ -805,9 +787,7 @@ def test_add_to_document_by_ip_address_with_host_not_in_linked_by():
             streamer.add_to_database_by_ip_address(ip_address, netloc, host, True)
         doc = streamer.document_from_ip_address(ip_address)
         assert doc['ip_address'] == ip_address
-        assert doc['network_locations'] == [
-            SON([('network_location', netloc), ('linked_by', [host1, host2, host3]), ('working_link', True)])
-        ]
+        assert doc['linked_by'] == [host1, host2, host3]
 
     streamer.delete()
 
@@ -1029,8 +1009,7 @@ def host_list_tests():
 
 def streamer_tests():
     return [error_check_init_streamer, test_document_from_ip_address, error_check_document_ip_address_with_invalid_ips,
-            error_check_document_from_ip_address_with_multiple_matching_ips, test_entry_from_netloc,
-            error_check_entry_from_netloc_with_null_doc, error_check_entry_from_netloc_with_invalid_urls,
+            test_entry_from_netloc, error_check_entry_from_netloc_with_null_doc, error_check_entry_from_netloc_with_invalid_urls,
             test_add_to_database_by_ip_address, test_add_to_document_by_ip_address_with_netloc_not_in_document,
             test_add_to_document_by_ip_address_with_host_not_in_linked_by]
 
@@ -1043,7 +1022,7 @@ def get_tests():
 
 
 def test_runner():
-    for test in crawler_tests():
+    for test in streamer_tests():
         print(test.__name__)
         test()
 

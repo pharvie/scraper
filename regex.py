@@ -27,7 +27,8 @@ regex = {
     'by-date': r'(\??&?by-date=(true|false))',
     'start': r'(\??&?start=[\d]+)',
     'updated-max': r'(\??&?updated-max=[^&]+)',
-    'lost-password': r'(\??&?action=lostpassword&redirect_to[^&]+)&?'
+    'lost-password': r'(\??&?action=lostpassword&redirect_to[^&]+)&?',
+    'title': r'EXTINF:-1, ?(.+[:\|] ?)?(.+)',
 }
 def get():
     return regex

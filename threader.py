@@ -17,8 +17,8 @@ hosts = ['https://cafe-tv.net', 'https://freedailyiptv.com', 'http://m3uliste.pw
      'https://autoiptv.net']
 
 host_list = HostList() # create an instance of the host list database
-num_of_threads = 5 # sets the number of sites that will be crawled simultaneously using multi-threading, keep this number around 3-5
-timeout = 2 # time to run the threads for (in hours)
+num_of_threads = 5 # sets the number of sites that will be crawled simultaneously using multi-threading, keep this number around 4-6
+timeout = 8 # time to run the threads for (in hours)
 
 # multi-threader instance, spawns a crawler at the inputted start page
 class MyThread(threading.Thread):
@@ -83,8 +83,9 @@ def run_threads():
 
 
 if __name__ == '__main__':
-    run_threads() # to run the threads uncomment this line and comment out the reset_running line
-    #host_list.reset_running() # uncomment this line and comment out the run_threads line to reset the running status of all hosts
+    #run_threads() # to run the threads uncomment this line and comment out the reset_running line
+    add_hosts_to_database()
+    host_list.reset_running() # uncomment this line and comment out the run_threads line to reset the running status of all hosts
 
 
 

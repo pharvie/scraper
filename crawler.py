@@ -49,7 +49,7 @@ class Crawler(object):
             self.host = um.prepare_netloc(start_url) # prepare the host url (it should be the same as the start_url, but just in case)
             self.internal_links.append(self.host) # append the host to the internal links, begins crawling from that link
             now = datetime.datetime.now() # get the current time
-            time = '%d-%d-%d:%d' % (now.year, now.month, now.day, 0 if now.hour < 12 else 12) # format it to morning and afternoon
+            time = '%d-%d-%d' % (now.year, now.month, now.day)
             self.streamer = Streamer(time) # start a streamer based on that time
             self.visited.add(self.host) # add the host to visited
             while self.internal_links: # while there are internal links in the deque
@@ -112,12 +112,14 @@ class Crawler(object):
         # empty whitespace from the array
         splitext_iter = iter(splitext) # creates an iterator of the splitext array
         internal_m3us = set() # set of internal m3us (network locations of m3us found on the page)
+        ext_title = None
         if splitext_iter: # check if there is text
             try: # try loop to catch the end of iteration
                 while True: # iterates over all lines in splitext using an iterator
                     curr = next(splitext_iter).strip()
                     ext_above = False
                     while re.search(regex['ext'], curr): # while an #EXT line is found, continue
+                        ext_title = curr
                         curr = next(splitext_iter).strip()
                         ext_above = True # set ext_above to True
                     if ext_above and not requester.validate_url(curr): # if an #EXT line is above and the line is not a url, then it
@@ -145,7 +147,11 @@ class Crawler(object):
                                 # probably a stream link, certain stream links are ignored like audio files (have extensions like .mp3
                                 # or .aac,) or streams originating from archive.org (give no information about the ip address as they
                                 # are archives
-                                self.streamer.add_to_streams(url, self.host) # add  the stream to the database
+                                s = re.search(regex['title'], ext_title)
+                                title = "Not found"
+                                if s:
+                                    title = s.group(2)
+                                self.streamer.add_to_streams(url, self.host, title) # add  the stream to the database
                             if re.search(regex['m3u'], url) and not requester.internal(url, self.host): # if an m3u was found and it was
                                 # not internal
                                 internal_m3us.add(netloc)

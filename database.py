@@ -14,7 +14,8 @@ regex = regex.get()
 class HostList(object):
     def __init__(self, name=None):
         try:
-            self._client = MongoClient(host='172.25.12.109', port=27017)  # creates a client to run the database at on the specified server
+            self._client = MongoClient(host='ubuntu@ec2-18-207-154-217.compute-1.amazonaws.com', port=27017)
+            # creates a client to run the database at on the specified server
         except ServerSelectionTimeoutError:
             raise ServerNotRunningError('MongoDB is not currently running on the host server. Try connecting to the host server and '
                                         'enter at the command line "sudo service mongod restart"')
@@ -98,7 +99,8 @@ class Streamer(object):
             raise InvalidInputError('Cannot write to a database with an invalid collection name: %s' % time)
         self._name = 'streams'
         try:
-            self._client = MongoClient(host='172.25.12.109', port=27017)  # creates a client to run the database at on the specified server
+            self._client = MongoClient(host='ubuntu@ec2-18-207-154-217.compute-1.amazonaws.com', port=27017)
+            # creates a client to run the database at on the specified server
         except ServerSelectionTimeoutError:
             raise ServerNotRunningError('MongoDB is not currently running on the host server. Try connecting to the host server and '
                                         'enter at the command line "sudo service mongod restart"')
@@ -116,7 +118,7 @@ class Streamer(object):
         # to check the validity of a given stream. Note that it will check the inputted number minus one streams, so if the input is
         # fib_to(20), 19 streams of a given netloc would be checked before declaring it invalid
 
-    def add_to_streams(self, url, host):
+    def add_to_streams(self, url, host, title=None):
         if not requester.validate_url(url):
             raise InvalidUrlError('Cannot add an invalid url to streams: %s' % url)
         if not requester.validate_url(host):
@@ -162,18 +164,18 @@ class Streamer(object):
                                     stream_statuses[url] = working_link = None
                         else:
                             working_link = stream_statuses[url]
-                        self.add_to_database_by_ip_address(ip_address, netloc, host, working_link)
+                        self.add_to_database_by_ip_address(ip_address, netloc, host, working_link, title)
                         if working_link:
                             self.working_stream_links.add(netloc)
                         elif working_link is False:
                             self.broken_stream_links.add(netloc)
                     self.connection_attempts[(ip_address, netloc)] += 1
-            else:
-                #print('%s is an invalid stream as the network location is deprecated' % url)
-                self.broken_stream_links.add(netloc)
-                self.add_to_database_by_ip_address(None, netloc, host, False)
+        elif netloc in self.working_stream_links:
+            ip_addresses = self.ip_addresses[netloc]
+            for ip_address in ip_addresses:
+                self.add_to_titles(ip_address, title)
                 
-    def add_to_database_by_ip_address(self, ip_address, netloc, host, working_link):
+    def add_to_database_by_ip_address(self, ip_address, netloc, host, working_link, title=None):
         if ip_address is not None and not re.search(regex['ip'], ip_address):
             raise InvalidInputError('Cannot add to database with invalid IP address: %s' % ip_address)
         if not requester.validate_url(netloc):
@@ -184,19 +186,19 @@ class Streamer(object):
         if not doc:
             data = {
                 'ip_address': ip_address,
-                'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', working_link)])]
+                'network_locations': [SON([('network_location', netloc), ('working_link', working_link)])],
+                'titles': [title],
+                'linked_by': [host]
             }
             self._collection.insert(data)
         else:
+            self.add_to_titles(ip_address, title)
+            self.add_to_hosts(ip_address, host)
             entry_from_netloc = self.entry_from_netloc(doc, netloc)
             if not entry_from_netloc:
-                subdata = SON([('network_location', netloc), ('linked_by', [host]), ('working_link', working_link)])
+                subdata = SON([('network_location', netloc), ('working_link', working_link)])
                 self._collection.update({'ip_address': ip_address}, {'$push': {'network_locations': subdata}})
             else:
-                if host not in entry_from_netloc['linked_by']:
-                    #print('%s is not in the linked_by of %s at %s' % (host, netloc, ip_address))
-                    self._collection.update({'ip_address': ip_address, 'network_locations.network_location': netloc},
-                                              {'$push': {'network_locations.$.linked_by': host}})
                 current_working_link = entry_from_netloc['working_link']
                 if working_link is not None:
                     if working_link and not current_working_link or working_link is False and current_working_link is None:
@@ -204,6 +206,7 @@ class Streamer(object):
                         #      (netloc, ip_address, working_link, current_working_link))
                         self._collection.update({'ip_address': ip_address, 'network_locations.network_location': netloc},
                                                   {'$set': {'network_locations.$.working_link': working_link}})
+
 
     def entry_from_netloc(self, doc, netloc):
         if doc is None:
@@ -220,18 +223,40 @@ class Streamer(object):
         if ip_address is not None and not re.search(regex['ip'], ip_address):
             raise InvalidInputError('Cannot add to database with invalid IP address: %s' % ip_address)
         cursors = self._collection.find({'ip_address': ip_address})  # retrieves all cursors that contain the inputted IP
-        if cursors.count() > 1:  # count counts the number of cursor, if there are multiple cursors an error is raised
-            raise MultipleEntriesInDatabaseError('There are multiple entries in the %s with the same IP address: %s' %
-                                                 (self._name, ip_address))
-        if cursors.count() == 1:
+        if cursors.count() > 0:
             return cursors[0]  # returns the cursor corresponding to the url
         return None  # returns None if no cursor is found
 
     def database(self):
         return self._db
 
+    def collection(self):
+        return self._collection
+
     def delete(self):
         self._client.drop_database(self._db.name)
+
+    def check_duplicates(self):
+        ip_addresses = {}
+        cursors = self._collection.find({})
+        for cursor in cursors:
+            ip_address = cursor['ip_address']
+            if ip_address in ip_addresses:
+                print('%s has occurred %s times' % (ip_address, ip_addresses[ip_address] + 1))
+            else:
+                ip_addresses[ip_address] = 0
+            ip_addresses[ip_address] += 1
+
+    def add_to_titles(self, ip_address, title):
+        if title != "Not found":
+            cursors = self._collection.find({'ip_address': ip_address, 'titles': title})
+            if cursors.count() == 0:
+                self._collection.update({'ip_address': ip_address}, {'$push': {'titles': title}})
+
+    def add_to_hosts(self, ip_address, host):
+        cursors = self._collection.find({'ip_address': ip_address, 'linked_by': host})
+        if cursors.count() == 0:
+            self._collection.update({'ip_address': ip_address}, {'$push': {'linked_by': host}})
 
 
 """
