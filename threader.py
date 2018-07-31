@@ -28,12 +28,7 @@ class MyThread(threading.Thread):
 
     # runs the crawler
     def run(self):
-        try:
             Crawler(start_url=self.page) # crawl from the start page
-            print('Finished crawling %s' % self.page)
-        except Exception as e: # catch any exception raised while crawling
-            print('Crawling processed was killed due to the following error: %s' % e)
-        finally:
             host_list.update_running(self.page, False) # if an exception is raised or the crawler finishes, set the running status to False
 
 # add hosts from the list of hosts to the database
@@ -83,9 +78,9 @@ def run_threads():
 
 
 if __name__ == '__main__':
-    #run_threads() # to run the threads uncomment this line and comment out the reset_running line
-    add_hosts_to_database()
-    host_list.reset_running() # uncomment this line and comment out the run_threads line to reset the running status of all hosts
+    #run_threads() # to run the threads uncomment this line and comment out the other lines
+    #add_hosts_to_database() # uncomment this line and comment out all other lines to add new start sites to the database
+    host_list.reset_running() # uncomment this line and comment out the other lines to reset the running status of all hosts
 
 
 

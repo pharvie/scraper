@@ -682,52 +682,6 @@ def error_check_document_ip_address_with_invalid_ips():
             streamer.document_from_ip_address(invalid)
 
 # Streamer method
-# Tests that the entry_from_netloc method functions properly
-def test_entry_from_netloc():
-    streamer = Streamer('test_entry_from_netloc')
-    host = 'http://ramalin.com'
-    netloc1 = 'http://gameriptv.com'
-    netloc2 = 'http://164.132.136.176'
-    netloc3 = 'http://31.132.0.66'
-    netloc4 = 'http://reddit.com'
-    netloc5 = 'http://facebook.com'
-    for netloc in [netloc1, netloc2, netloc3]:
-        ip_addresses = socket.gethostbyname_ex(um.remove_schema(netloc))[2]
-        for ip_address in ip_addresses:
-            data = {
-                'ip_address': ip_address,
-                'network_locations': [SON([('network_location', netloc), ('linked_by', [host]), ('working_link', True)])]
-            }
-            streamer.collection().insert(data)
-            doc = streamer.document_from_ip_address(ip_address)
-            entry = streamer.entry_from_netloc(doc, netloc)
-            assert entry is not None
-            assert entry['network_location'] == netloc
-            assert entry['linked_by'] == [host]
-            assert entry['working_link'] is True
-            assert streamer.entry_from_netloc(doc, netloc4) is None
-            assert streamer.entry_from_netloc(doc, netloc5) is None
-
-    streamer.delete()
-
-# Streamer method
-# Error checks the entry_from_netloc method with a null document
-def error_check_entry_from_netloc_with_null_doc():
-    streamer = Streamer('error_check_entry_from_netloc_with_null_doc')
-    netloc = 'http://reddit.com'
-    with pytest.raises(InvalidInputError):
-        streamer.entry_from_netloc(None, netloc)
-
-# Streamer method
-# Error checks the entry_from_netloc method with invalid urls
-def error_check_entry_from_netloc_with_invalid_urls():
-    streamer = Streamer('error_check_entry_from_netloc_with_invalid_urls')
-    doc = {}
-    for invalid in [[], set(), 0, 'www.reddit.com']:
-        with pytest.raises(InvalidUrlError):
-            streamer.entry_from_netloc(doc, invalid)
-
-# Streamer method
 # Tests that the add_to_database_by_ip_address method functions properly when adding an ip address that has not yet occurred
 def test_add_to_database_by_ip_address():
     streamer = Streamer('test_add_to_database_by_ip_address')
@@ -744,7 +698,7 @@ def test_add_to_database_by_ip_address():
 
             assert doc['ip_address'] == ip_address
             for entry in doc['network_locations']:
-                assert entry['network_location'] == netloc
+                assert entry == netloc
 
     streamer.delete()
 
@@ -763,18 +717,14 @@ def test_add_to_document_by_ip_address_with_netloc_not_in_document():
 
     doc = streamer.document_from_ip_address(ip_address)
     assert doc['ip_address'] == ip_address
-    assert doc['network_locations'] == [
-        SON([('network_location', url1), ('working_link', True)]),
-        SON([('network_location', url2), ('working_link', True)]),
-        SON([('network_location', url3), ('working_link', True)])
-    ]
+    assert doc['network_locations'] == [url1, url2, url3]
 
     streamer.delete()
     
 # Streamer method
 # Tests that the add_to_database_by_ip_address method functions properly when adding an ip address and network location already present 
 # in the database, and the host is not currently present in the linked_by of the document
-def test_add_to_document_by_ip_address_with_host_not_in_linked_by():
+def test_add_to_document_with_host_not_in_linked_by():
     streamer = Streamer('test_add_to_document_by_ip_address_with_host_not_in_linked_by')
     netloc = 'http://reddit.com'
     host1 = 'http://list-iptv.com'
@@ -793,8 +743,8 @@ def test_add_to_document_by_ip_address_with_host_not_in_linked_by():
 
 # Streamer method
 # Test that the add_to_document_by_ip_address correctly updates the working_link status of a netloc at an ip_address
-def test_update_working_link_of_add_to_document_by_ip_address():
-    streamer = Streamer('test_update_working_link')
+def test_update_stream_status_of_document():
+    streamer = Streamer('test_update_stream_status_of_document')
     netloc1 = 'http://reddit.com'
     netloc2 = 'http://facebook.com'
     netloc3 = 'http://ramalin.com'
@@ -808,28 +758,28 @@ def test_update_working_link_of_add_to_document_by_ip_address():
         # None to True
         streamer.add_to_database_by_ip_address(ip_address1, netloc, host, None)
         streamer.add_to_database_by_ip_address(ip_address1, netloc, host, True)
-        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address1), netloc)
-        assert efn['working_link'] is True
+        doc = streamer.document_from_ip_address(ip_address1)
+        assert doc['stream_status'] == "Mixed"
         # False to True
         streamer.add_to_database_by_ip_address(ip_address2, netloc, host, False)
         streamer.add_to_database_by_ip_address(ip_address2, netloc, host, True)
-        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address2), netloc)
-        assert efn['working_link'] is True
+        doc = streamer.document_from_ip_address(ip_address2)
+        assert doc['stream_status'] == "Mixed"
         # None to False
         streamer.add_to_database_by_ip_address(ip_address3, netloc, host, None)
         streamer.add_to_database_by_ip_address(ip_address3, netloc, host, False)
-        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address3), netloc)
-        assert efn['working_link'] is False
+        doc = streamer.document_from_ip_address(ip_address3)
+        assert doc['stream_status'] == "Broken"
         # Not False to True
         streamer.add_to_database_by_ip_address(ip_address4, netloc, host, True)
         streamer.add_to_database_by_ip_address(ip_address4, netloc, host, False)
-        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address4), netloc)
-        assert efn['working_link'] is True
+        doc = streamer.document_from_ip_address(ip_address4)
+        assert doc['stream_status'] == "Mixed"
         # Not None to False
         streamer.add_to_database_by_ip_address(ip_address5, netloc, host, False)
         streamer.add_to_database_by_ip_address(ip_address5, netloc, host, None)
-        efn = streamer.entry_from_netloc(streamer.document_from_ip_address(ip_address5), netloc)
-        assert efn['working_link'] is False
+        doc = streamer.document_from_ip_address(ip_address5)
+        assert doc['stream_status'] == "Broken"
 
     streamer.delete()
 
@@ -1009,9 +959,8 @@ def host_list_tests():
 
 def streamer_tests():
     return [error_check_init_streamer, test_document_from_ip_address, error_check_document_ip_address_with_invalid_ips,
-            test_entry_from_netloc, error_check_entry_from_netloc_with_null_doc, error_check_entry_from_netloc_with_invalid_urls,
             test_add_to_database_by_ip_address, test_add_to_document_by_ip_address_with_netloc_not_in_document,
-            test_add_to_document_by_ip_address_with_host_not_in_linked_by]
+            test_add_to_document_with_host_not_in_linked_by, test_update_stream_status_of_document]
 
 def crawler_tests():
     return [test_parse_with_m3u, test_parse_with_download, test_parse_with_zip, test_parse_text_from_parse,

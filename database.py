@@ -6,7 +6,6 @@ import re
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
 import socket
-from bson.son import SON
 
 regex = regex.get()
 
@@ -14,7 +13,7 @@ regex = regex.get()
 class HostList(object):
     def __init__(self, name=None):
         try:
-            self._client = MongoClient(host='ubuntu@ec2-18-207-154-217.compute-1.amazonaws.com', port=27017)
+            self._client = MongoClient(host='18.207.154.217', port=27017)
             # creates a client to run the database at on the specified server
         except ServerSelectionTimeoutError:
             raise ServerNotRunningError('MongoDB is not currently running on the host server. Try connecting to the host server and '
@@ -99,7 +98,7 @@ class Streamer(object):
             raise InvalidInputError('Cannot write to a database with an invalid collection name: %s' % time)
         self._name = 'streams'
         try:
-            self._client = MongoClient(host='ubuntu@ec2-18-207-154-217.compute-1.amazonaws.com', port=27017)
+            self._client = MongoClient(host='18.207.154.217', port=27017)
             # creates a client to run the database at on the specified server
         except ServerSelectionTimeoutError:
             raise ServerNotRunningError('MongoDB is not currently running on the host server. Try connecting to the host server and '
@@ -143,14 +142,7 @@ class Streamer(object):
                     if (ip_address, netloc) not in self.connection_attempts:
                         self.connection_attempts[(ip_address, netloc)] = 1
                     if self.connection_attempts[(ip_address, netloc)] in self.fibs:
-                        doc = self.document_from_ip_address(ip_address)
-                        try:
-                            entry_from_netloc = self.entry_from_netloc(doc, netloc)
-                        except InvalidInputError:
-                            entry_from_netloc = None
-                        if entry_from_netloc and entry_from_netloc['working_link']:
-                            working_link = True
-                        elif url not in stream_statuses:
+                        if url not in stream_statuses:
                             try:
                                 stream_status = requester.evaluate_stream(url)
                             except StreamTimedOutError:
@@ -184,40 +176,59 @@ class Streamer(object):
             raise InvalidUrlError('Cannot add to database with an invalid host: %s' % host)
         doc = self.document_from_ip_address(ip_address)
         if not doc:
+            if working_link:
+                stream_status = "Working"
+            else:
+                stream_status = "Broken"
             data = {
                 'ip_address': ip_address,
-                'network_locations': [SON([('network_location', netloc), ('working_link', working_link)])],
-                'titles': [title],
-                'linked_by': [host]
+                'network_locations': [netloc],
+                'titles': [],
+                'linked_by': [host],
+                'stream_status': stream_status
             }
             self._collection.insert(data)
+
         else:
-            self.add_to_titles(ip_address, title)
             self.add_to_hosts(ip_address, host)
-            entry_from_netloc = self.entry_from_netloc(doc, netloc)
-            if not entry_from_netloc:
-                subdata = SON([('network_location', netloc), ('working_link', working_link)])
-                self._collection.update({'ip_address': ip_address}, {'$push': {'network_locations': subdata}})
+            if netloc not in doc["network_locations"]:
+                self._collection.update({'ip_address': ip_address}, {'$push': {'network_locations': netloc}})
             else:
-                current_working_link = entry_from_netloc['working_link']
-                if working_link is not None:
-                    if working_link and not current_working_link or working_link is False and current_working_link is None:
-                        #print('Updating the working link status of %s at %s to %s as it was previously %s' %
-                        #      (netloc, ip_address, working_link, current_working_link))
-                        self._collection.update({'ip_address': ip_address, 'network_locations.network_location': netloc},
-                                                  {'$set': {'network_locations.$.working_link': working_link}})
+                self.update_stream_status(ip_address, working_link)
+        self.add_to_titles(ip_address, title)
 
+    def add_to_titles(self, ip_address, title):
+        if title is not None and not isinstance(title, str):
+            raise InvalidInputError("The following title is not valid: %s" % title)
+        if title is not None and title not in ["", "Not found", "desc", "no-desc"] and not re.search(regex["whitespace"], title) \
+                and not re.search(regex["digits"], title):
+            pattern = re.compile(r'hd', re.IGNORECASE)
+            title = pattern.sub("", title)
+            pattern = re.compile(r'_|\.')
+            title = pattern.sub(" ", title)
+            pattern = re.compile(r'[\(\[].*[\)\]]')
+            title = pattern.sub("", title)
+            print("Modified title: %s" % title)
+            cursors = self._collection.find({'ip_address': ip_address, 'titles': title})
+            if cursors.count() == 0:
+                self._collection.update({'ip_address': ip_address}, {'$push': {'titles': title}})
 
-    def entry_from_netloc(self, doc, netloc):
-        if doc is None:
-            raise InvalidInputError('Cannot retrieve entry from netloc with null document')
-        if not requester.validate_url(netloc):
-            raise InvalidUrlError('Cannot retrieve entry from netloc with invalid netloc: %s' % netloc)
-        efn = None
-        for entry in doc['network_locations']:
-            if entry['network_location'] == netloc:
-                efn = entry
-        return efn
+    def add_to_hosts(self, ip_address, host):
+        cursors = self._collection.find({'ip_address': ip_address, 'linked_by': host})
+        if cursors.count() == 0:
+            self._collection.update({'ip_address': ip_address}, {'$push': {'linked_by': host}})
+
+    def update_stream_status(self, ip_address, working_link):
+        cursors = self._collection.find({'ip_address': ip_address})
+        if cursors.count() > 0:
+            doc = cursors[0]
+            stream_status = None
+            if doc["stream_status"] == "Working" and working_link is False:
+                stream_status = "Mixed"
+            elif doc["stream_status"] == "Broken" and working_link is True:
+                stream_status = "Mixed"
+            if stream_status:
+                self._collection.update({'ip_address': ip_address}, {"$set": {"stream_status": stream_status}})
 
     def document_from_ip_address(self, ip_address):
         if ip_address is not None and not re.search(regex['ip'], ip_address):
@@ -247,18 +258,6 @@ class Streamer(object):
                 ip_addresses[ip_address] = 0
             ip_addresses[ip_address] += 1
 
-    def add_to_titles(self, ip_address, title):
-        if title != "Not found":
-            cursors = self._collection.find({'ip_address': ip_address, 'titles': title})
-            if cursors.count() == 0:
-                self._collection.update({'ip_address': ip_address}, {'$push': {'titles': title}})
-
-    def add_to_hosts(self, ip_address, host):
-        cursors = self._collection.find({'ip_address': ip_address, 'linked_by': host})
-        if cursors.count() == 0:
-            self._collection.update({'ip_address': ip_address}, {'$push': {'linked_by': host}})
-
-
 """
 Method: fib_to
 Purpose: returns an array of fibonacci numbers up to n
@@ -278,3 +277,6 @@ def fib_to(n):
     for i in range(2, n + 1):
         fibs.append(fibs[-1] + fibs[-2])
     return fibs
+
+streamer = Streamer("2018-7-31")
+streamer.check_duplicates()

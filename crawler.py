@@ -147,10 +147,11 @@ class Crawler(object):
                                 # probably a stream link, certain stream links are ignored like audio files (have extensions like .mp3
                                 # or .aac,) or streams originating from archive.org (give no information about the ip address as they
                                 # are archives
-                                s = re.search(regex['title'], ext_title)
-                                title = "Not found"
+                                s = re.search(regex['title'], ext_title, re.IGNORECASE)
                                 if s:
                                     title = s.group(2)
+                                else:
+                                    title = "Not found"
                                 self.streamer.add_to_streams(url, self.host, title) # add  the stream to the database
                             if re.search(regex['m3u'], url) and not requester.internal(url, self.host): # if an m3u was found and it was
                                 # not internal

@@ -17,6 +17,7 @@ regex = {
     'invalid': r'(#)|(javascript:(%\d+)?void\(0\))|(^\/$)|(\.png)|(\.jpeg)|(^$)',
     'ext': r'^#(EXT)|(MY)',
     'whitespace': r'^\s*$',
+    'digits': r'^\d*$',
     'params': r'(.+?)(\??&.+)',
     'end': r'(.+)\/$',
     'ignore': r'(\.mp3)|(\.aac)|(archive\.org)',
@@ -28,7 +29,7 @@ regex = {
     'start': r'(\??&?start=[\d]+)',
     'updated-max': r'(\??&?updated-max=[^&]+)',
     'lost-password': r'(\??&?action=lostpassword&redirect_to[^&]+)&?',
-    'title': r'EXTINF:-1, ?(.+[:\|] ?)?(.+)',
+    'title': r'#EXTINF:-?[\d\.]+, ?(.*[:\|-])? ?(.+)?'
 }
 def get():
     return regex
