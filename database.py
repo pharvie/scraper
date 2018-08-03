@@ -205,7 +205,6 @@ class Streamer(object):
                                     stream_statuses[url] = working_link = True
                                     r = requester.make_request(url)
                                     if r and r.ok:
-                                        print("Working url %s" % url)
                                         playable_url = True
                                 elif self.connection_attempts[(ip_address, netloc)] == self.fibs[-1]:
                                     stream_statuses[url] = working_link = False

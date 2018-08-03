@@ -89,7 +89,7 @@ def run_threads():
 
 
 if __name__ == '__main__':
-    host_list.reset_running() # uncomment this line and comment out the other lines to reset the running status of all hosts
+    #host_list.reset_running() # uncomment this line and comment out the other lines to reset the running status of all hosts
     add_hosts_to_database()
     add_titles_to_database()
     run_threads() # runs the threads
