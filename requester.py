@@ -49,7 +49,6 @@ def evaluate_stream(url):
         raise StreamTimedOutError('%s timed out' % url) #raise the StreamTimedOutError, which will be handled differently than a False
     if r and r.ok: #if the request is valid
         if get_format(r) == 'stream': #if the content of the request is a stream
-            print('Working stream at %s' % url)
             return True #return True, found as stream
     return False
 

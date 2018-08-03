@@ -10,7 +10,6 @@ from zipfile import BadZipFile
 import io
 import re
 from urllib.parse import urlparse
-from pympler import asizeof
 import datetime
 import eventlet
 
@@ -34,7 +33,6 @@ class Crawler(object):
         if test_url and not requester.validate_url(test_url):
             raise InvalidUrlError('The test url must be a url, the following input is not: %s' % test_url)
         self.hashes = set() # set of hash codes for unzipped m3u files (reduce redundant parsing)
-        self.counter = 1 # counter for printing information
         self.internal_links = deque() # deque of internal links, links that will be crawled
         self.host_links = deque() # deque of host_links, links that host m3us
         self.host = None # the host url, the page at which the crawler begins crawler
@@ -63,12 +61,6 @@ class Crawler(object):
             raise InvalidUrlError('Cannot crawl page of invalid url: ' + str(page))
         request = requester.make_request(page) # make a request to the page
         if request: # if it's a valid request
-            if self.counter % 10 == 0:
-                print('After crawling %s from %s links the total size is in bytes is currently %s, the queue has %s items '
-                      'and is %s bytes large, visited size is %s' % (self.counter, self.host, asizeof.asizeof(self),
-                                                                     len(self.internal_links), asizeof.asizeof(self.internal_links),
-                                                                     asizeof.asizeof(self.visited)))
-            self.counter += 1
             try:
                 soup = BeautifulSoup(request.text, 'html.parser') # try making a bs4 soup from the request
             except NotImplementedError: # this error appears from time to time (not sure why ¯\_(ツ)_/¯)
@@ -147,12 +139,7 @@ class Crawler(object):
                                 # probably a stream link, certain stream links are ignored like audio files (have extensions like .mp3
                                 # or .aac,) or streams originating from archive.org (give no information about the ip address as they
                                 # are archives
-                                s = re.search(regex['title'], ext_title, re.IGNORECASE)
-                                if s:
-                                    title = s.group(2)
-                                else:
-                                    title = "Not found"
-                                self.streamer.add_to_streams(url, self.host, title) # add  the stream to the database
+                                self.streamer.add_to_streams(url, self.host, ext_title) # add  the stream to the database
                             if re.search(regex['m3u'], url) and not requester.internal(url, self.host): # if an m3u was found and it was
                                 # not internal
                                 internal_m3us.add(netloc)

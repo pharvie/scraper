@@ -9,19 +9,68 @@ import socket
 
 regex = regex.get()
 
-#The database of host sites to parse
-class HostList(object):
-    def __init__(self, name=None):
+# The database of titles used to identify streams
+class TitleList(object):
+    def __init__(self):
         try:
+            #TODO: Add the IP address of the database to a config file and pull it down instead of hardcoding it here
             self._client = MongoClient(host='18.207.154.217', port=27017)
             # creates a client to run the database at on the specified server
         except ServerSelectionTimeoutError:
             raise ServerNotRunningError('MongoDB is not currently running on the host server. Try connecting to the host server and '
                                         'enter at the command line "sudo service mongod restart"')
-        if name:
-            self._db = self._client[name] # for testing purposes
-        else:
-            self._db = self._client['hosts']  # the database running on the client
+        self._db = self._client['titles']  # the database running on the client
+
+    # adds a host to the database if it isn't already present
+    def add_to_titles(self, title):
+        if not isinstance(title, str):
+            raise InvalidInputError('Cannot add a non-string title to titles: The title %s is a %s' % (title, type(title)))
+        entry = self.entry_from_title(title)
+        if entry:
+            raise EntryInDatabaseError('The following host is already in the database: %s' % title)
+        data = {"title": title} # data for the entry
+        self._db.titles.insert(data)
+
+    #retrieves an entry in the database corresponding to the inputted host, returns None if no entry is found
+    def entry_from_title(self, title):
+        if not isinstance(title, str):
+            raise InvalidInputError('Cannot search for a non-string title in titles: The title %s is a %s' % (title, type(title)))
+        cursors = self._db.titles.find({"title": title})
+        if cursors.count() > 1:  # count counts the number of cursor, if there are multiple cursors an error is raised
+            raise MultipleEntriesInDatabaseError('There are multiple entries in the hosts database with the same title: %s' % title)
+        if cursors.count() == 1:
+            return cursors[0]  # returns the cursor corresponding to the url
+        return None  # returns None if no cursor is found
+
+    def array_from_title_list(self):
+        titles = []
+        cursors = self._db.titles.find({})
+        for entry in cursors:
+            title = entry["title"]
+            titles.append(title)
+
+        return titles
+
+    # returns database for testing purposes
+    def database(self):
+        return self._db
+
+    # deletes database for testing purposes
+    def delete(self):
+        self._client.drop_database(self._db.name)
+
+
+#The database of host sites to parse
+class HostList(object):
+    def __init__(self):
+        try:
+            # TODO: Add the IP address of the database to a config file and pull it down instead of hardcoding it here
+            self._client = MongoClient(host='18.207.154.217', port=27017)
+            # creates a client to run the database at on the specified server
+        except ServerSelectionTimeoutError:
+            raise ServerNotRunningError('MongoDB is not currently running on the host server. Try connecting to the host server and '
+                                        'enter at the command line "sudo service mongod restart"')
+        self._db = self._client['hosts']  # the database running on the client
 
     # adds a host to the database if it isn't already present
     def add_to_hosts(self, host, running=False):
@@ -98,6 +147,7 @@ class Streamer(object):
             raise InvalidInputError('Cannot write to a database with an invalid collection name: %s' % time)
         self._name = 'streams'
         try:
+            # TODO: Add the IP address of the database to a config file and pull it down instead of hardcoding it here
             self._client = MongoClient(host='18.207.154.217', port=27017)
             # creates a client to run the database at on the specified server
         except ServerSelectionTimeoutError:
@@ -116,8 +166,10 @@ class Streamer(object):
         # more attempts to check the validity of a given stream, decrease the input and the algorithm will make less attempts
         # to check the validity of a given stream. Note that it will check the inputted number minus one streams, so if the input is
         # fib_to(20), 19 streams of a given netloc would be checked before declaring it invalid
+        title_list = TitleList()
+        self.titles = title_list.array_from_title_list()
 
-    def add_to_streams(self, url, host, title=None):
+    def add_to_streams(self, url, host, ext_title=None):
         if not requester.validate_url(url):
             raise InvalidUrlError('Cannot add an invalid url to streams: %s' % url)
         if not requester.validate_url(host):
@@ -139,6 +191,7 @@ class Streamer(object):
             if ip_addresses:
                 stream_statuses = {}
                 for ip_address in ip_addresses:
+                    playable_url = False
                     if (ip_address, netloc) not in self.connection_attempts:
                         self.connection_attempts[(ip_address, netloc)] = 1
                     if self.connection_attempts[(ip_address, netloc)] in self.fibs:
@@ -150,13 +203,20 @@ class Streamer(object):
                             else:
                                 if stream_status:
                                     stream_statuses[url] = working_link = True
+                                    r = requester.make_request(url)
+                                    if r and r.ok:
+                                        print("Working url %s" % url)
+                                        playable_url = True
                                 elif self.connection_attempts[(ip_address, netloc)] == self.fibs[-1]:
                                     stream_statuses[url] = working_link = False
                                 else:
                                     stream_statuses[url] = working_link = None
                         else:
                             working_link = stream_statuses[url]
-                        self.add_to_database_by_ip_address(ip_address, netloc, host, working_link, title)
+                        if not playable_url:
+                            self.add_to_database_by_ip_address(ip_address, netloc, host, working_link, ext_title)
+                        else:
+                            self.add_to_database_by_ip_address(ip_address, netloc, host, working_link, ext_title, url)
                         if working_link:
                             self.working_stream_links.add(netloc)
                         elif working_link is False:
@@ -165,9 +225,9 @@ class Streamer(object):
         elif netloc in self.working_stream_links:
             ip_addresses = self.ip_addresses[netloc]
             for ip_address in ip_addresses:
-                self.add_to_titles(ip_address, title)
-                
-    def add_to_database_by_ip_address(self, ip_address, netloc, host, working_link, title=None):
+                self.add_to_titles(ip_address, ext_title)
+
+    def add_to_database_by_ip_address(self, ip_address, netloc, host, working_link, title=None, playable_url=None):
         if ip_address is not None and not re.search(regex['ip'], ip_address):
             raise InvalidInputError('Cannot add to database with invalid IP address: %s' % ip_address)
         if not requester.validate_url(netloc):
@@ -185,8 +245,11 @@ class Streamer(object):
                 'network_locations': [netloc],
                 'titles': [],
                 'linked_by': [host],
-                'stream_status': stream_status
+                'stream_status': stream_status,
+                'playable_urls': []
             }
+            if playable_url:
+                data["playable_urls"].append(playable_url)
             self._collection.insert(data)
 
         else:
@@ -197,21 +260,18 @@ class Streamer(object):
                 self.update_stream_status(ip_address, working_link)
         self.add_to_titles(ip_address, title)
 
-    def add_to_titles(self, ip_address, title):
-        if title is not None and not isinstance(title, str):
-            raise InvalidInputError("The following title is not valid: %s" % title)
-        if title is not None and title not in ["", "Not found", "desc", "no-desc"] and not re.search(regex["whitespace"], title) \
-                and not re.search(regex["digits"], title):
-            pattern = re.compile(r'hd', re.IGNORECASE)
-            title = pattern.sub("", title)
-            pattern = re.compile(r'_|\.')
-            title = pattern.sub(" ", title)
-            pattern = re.compile(r'[\(\[].*[\)\]]')
-            title = pattern.sub("", title)
-            print("Modified title: %s" % title)
-            cursors = self._collection.find({'ip_address': ip_address, 'titles': title})
-            if cursors.count() == 0:
-                self._collection.update({'ip_address': ip_address}, {'$push': {'titles': title}})
+    def add_to_titles(self, ip_address, ext_title):
+        if ext_title is not None and not isinstance(ext_title, str):
+            raise InvalidInputError("The following title is not valid: %s" % ext_title)
+        if ext_title is not None and ext_title not in ["", "Not found", "desc", "no-desc", "no desc"] and \
+                not re.search(regex["whitespace"], ext_title) and not re.search(regex["digits"], ext_title):
+                pattern = re.compile(r'_|\.')
+                ext_title = pattern.sub(" ", ext_title)
+                for title in self.titles:
+                    if re.search(title, ext_title, re.IGNORECASE):
+                        cursors = self._collection.find({'ip_address': ip_address, 'titles': title})
+                        if cursors.count() == 0:
+                            self._collection.update({'ip_address': ip_address}, {'$push': {'titles': title}})
 
     def add_to_hosts(self, ip_address, host):
         cursors = self._collection.find({'ip_address': ip_address, 'linked_by': host})
@@ -278,5 +338,5 @@ def fib_to(n):
         fibs.append(fibs[-1] + fibs[-2])
     return fibs
 
-streamer = Streamer("2018-7-31")
-streamer.check_duplicates()
+
+

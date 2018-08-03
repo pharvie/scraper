@@ -10,7 +10,7 @@ regex = {
     'ip': r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$',
     'm3u': r'(\.m3u8?)|(&?type=m3u8?)',
     'streams': r'(\.ts)|(\.mp4)|(\.mkv)|(\.ch)|(\.mpg)|(\/mpegts)',
-    'dl': r'(=download)|(dl=)|(\/playlist)$|(\/playlist\/)|(rndad=)|(\.php)',
+    'dl': r'(=download)|(dl=)|(\/playlist)$|(\/playlist\/)|(rndad=)|(\.php)|(download-attachment)',
     'ndl': r'(\/playlist\/page)|(tag\/playlist\/)',
     'zip': r'(\.zip)|(&?type=zip)',
     'raw': r'(pastebin\.com\/raw\/.{8})$',
@@ -29,7 +29,7 @@ regex = {
     'start': r'(\??&?start=[\d]+)',
     'updated-max': r'(\??&?updated-max=[^&]+)',
     'lost-password': r'(\??&?action=lostpassword&redirect_to[^&]+)&?',
-    'title': r'#EXTINF:-?[\d\.]+, ?(.*[:\|-])? ?(.+)?'
+    'title': r'#EXTINF:-?[\d\.]+(.*), ?(.*[:\|-])? ?(.+)'
 }
 def get():
     return regex

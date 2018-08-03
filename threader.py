@@ -1,7 +1,7 @@
 import url_mutator as um
 import threading
 from crawler import Crawler
-from database import HostList
+from database import HostList, TitleList
 import eventlet
 import time
 
@@ -10,14 +10,21 @@ eventlet.monkey_patch()
 # lists of site that are crawled, add sites to this list if you'd like for them to be crawled
 # I removed the identifiers and trailing backslashes from the sites I added, you can if you want to, however, the program
 # should do automatically when adding them to the hosts database
+#TODO: Add this array to the config file
 hosts = ['https://cafe-tv.net', 'https://freedailyiptv.com', 'http://m3uliste.pw', 'https://list-iptv.com', 'http://freshiptv.com',
      'http://iptvurllist.com', 'http://freeworldwideiptv.com', 'http://ramalin.com', 'http://i-ptv.blogspot.com',
      'https://fluxustv.blogspot.com', 'https://www.iptvsource.com', 'https://iptvhits.blogspot.com', 'http://iptvurls.com',
      'https://iptv4sat.com', 'https://gratisiptv.com', 'https://freeiptv.online', 'https://skyiptv.online',
      'https://autoiptv.net']
 
+#TODO: Add this array to the config file
+titles = ["Fox", "Game of Thrones", "ABC", "HBO", "BBC", "A&E", "Disney", "Nickelodeon", "CNN"]
+
 host_list = HostList() # create an instance of the host list database
+title_list = TitleList() # create an instance of the title list database
+#TODO: Add this value to the config file
 num_of_threads = 5 # sets the number of sites that will be crawled simultaneously using multi-threading, keep this number around 4-6
+#TODO: Add this value to the config file
 timeout = 8 # time to run the threads for (in hours)
 
 # multi-threader instance, spawns a crawler at the inputted start page
@@ -28,8 +35,8 @@ class MyThread(threading.Thread):
 
     # runs the crawler
     def run(self):
-            Crawler(start_url=self.page) # crawl from the start page
-            host_list.update_running(self.page, False) # if an exception is raised or the crawler finishes, set the running status to False
+        Crawler(start_url=self.page) # crawl from the start page
+        host_list.update_running(self.page, False) # if an exception is raised or the crawler finishes, set the running status to False
 
 # add hosts from the list of hosts to the database
 def add_hosts_to_database():
@@ -37,6 +44,11 @@ def add_hosts_to_database():
         host = um.prepare_netloc(host) # prepare the network location of the host
         if host_list.entry_from_host(host) is None: # if there is not an entry at the host
             host_list.add_to_hosts(host) # add it to the database
+
+def add_titles_to_database():
+    for title in titles:
+        if title_list.entry_from_title(title) is None:
+            title_list.add_to_titles(title)
 
 # pulls down hosts from the database
 def pull_down_from_database():
@@ -47,7 +59,6 @@ def pull_down_from_database():
         host = entry['host'] # retrieve the host at the entry
         sites.append(host) #
         host_list.update_running(host, True) # update the host's status to running
-
     return sites
 
 # creates threads from a list of sites
@@ -78,9 +89,9 @@ def run_threads():
 
 
 if __name__ == '__main__':
-    #run_threads() # to run the threads uncomment this line and comment out the other lines
-    #add_hosts_to_database() # uncomment this line and comment out all other lines to add new start sites to the database
     host_list.reset_running() # uncomment this line and comment out the other lines to reset the running status of all hosts
-
+    add_hosts_to_database()
+    add_titles_to_database()
+    run_threads() # runs the threads
 
 
